@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require 'cloudsap'
+
+trap 'SIGINT' do
+  puts
+  puts 'Caught Interrupt. Exiting ...'
+  exit 1
+end
+
+Cloudsap::CLI.start
+

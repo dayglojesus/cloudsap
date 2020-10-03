@@ -1,0 +1,6 @@
+_scraps*
+.DS_Store
+Dockerfile.build
+.bundle
+vendor
+Gemfile.lock
