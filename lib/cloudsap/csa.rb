@@ -34,5 +34,20 @@ module Cloudsap
 
     def delete
     end
+
+    def options
+      Common.options
+    end
+
+    private
+
+    def iam_role_name(object)
+      iam_role_name = %W[
+        #{options[:cluster_id]}
+        sa
+        #{object[:metadata][:namespace]}
+        #{object[:metadata][:name]}
+      ].join('-')
+    end
   end
 end
