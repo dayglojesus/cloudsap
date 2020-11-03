@@ -8,6 +8,7 @@ gemspec
 git_source(:github) {|repo_name| "https://github.com/#{repo_name}"}
 
 gem 'rake'
+gem 'erb'
 gem 'rack'
 gem 'thin'
 gem 'thor'
