@@ -2,7 +2,7 @@
 
 module Cloudsap
   class Watcher
-    attr_reader :api_group, :api_version, :client
+    attr_reader :api_group, :api_version
 
     include Common
 
@@ -20,7 +20,7 @@ module Cloudsap
 
     def watch
       version = client.get_cloud_service_accounts.resourceVersion
-      client.watch_cloud_service_accounts(resource_version: version) do |res|
+      @client.watch_cloud_service_accounts(resource_version: version) do |res|
         self.send(res.type.downcase.to_sym, res)
       end
     end
@@ -57,7 +57,7 @@ module Cloudsap
         endpoint_uri,
         api_version,
         ssl_options: config.context.ssl_options,
-        auth_options: config.context.auth_options
+        auth_options: config.context.auth_options,
       )
     end
 
