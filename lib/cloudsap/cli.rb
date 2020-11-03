@@ -10,11 +10,12 @@ module Cloudsap
     end
 
     desc 'controller', 'Run Cloudsap controller'
-    option :aws_region, type: :string,  default: ENV['AWS_REGION'], required: true
-    option :cluster_id, type: :string,  default: ENV['CLOUDSAP_CLUSTER_ID'], required: true
-    option :provider,   type: :string,  default: (ENV['CLOUDSAP_PROVIDER'] || 'aws')
-    option :debug,      type: :boolean, default: (ENV['CLOUDSAP_DEBUG']    || false)
+    option :aws_region,   type: :string,  default: ENV['AWS_REGION'], required: true
+    option :cluster_name, type: :string,  default: ENV['CLOUDSAP_CLUSTER_NAME'], required: true
+    option :debug,        type: :boolean, default: (ENV['CLOUDSAP_DEBUG']    || false)
     def controller
+      Cloudsap::Common.options = options
+
       registry = Prometheus::Client.registry
       metrics  = Cloudsap::Metrics.new(registry)
 
@@ -25,7 +26,7 @@ module Cloudsap
           Cloudsap::Watcher.run(API_GROUP, API_VERSION, metrics)
         rescue => error
           puts error.message
-          puts error.backtrace if debug
+          puts error.backtrace if options[:debug]
           sleep 5
           metrics.restart
           retry
@@ -36,7 +37,7 @@ module Cloudsap
         use Rack::Deflater
         use Prometheus::Middleware::Exporter, registry: registry
         map '/health' do
-          run ->(env) { [200, {"Content-Type" => "text/html"}, ["OK"]] }
+          run ->(env) { [200, {'Content-Type' => 'text/html'}, ['OK']] }
         end
       end
 
