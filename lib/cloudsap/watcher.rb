@@ -2,7 +2,7 @@
 
 module Cloudsap
   class Watcher
-    attr_reader :api_group, :api_version
+    attr_reader :api_group, :api_version, :client
 
     include Common
 
@@ -15,18 +15,18 @@ module Cloudsap
       @metrics     = metrics
       @api_group   = api_group
       @api_version = api_version
-      @client      = client
+      @client      = csa_client
     end
 
     def watch
-      version = client.get_cloud_service_accounts.resourceVersion
+      version = @client.get_cloud_service_accounts.resourceVersion
       @client.watch_cloud_service_accounts(resource_version: version) do |res|
         self.send(res.type.downcase.to_sym, res)
       end
     end
 
     def csa_load(resource)
-      @csa = CloudServiceAccount.load(resource)
+      @csa = CloudServiceAccount.load(client, resource)
     end
 
     def added(resource)
@@ -50,23 +50,6 @@ module Cloudsap
     def error(resource)
       pp resource
       @metrics.error
-    end
-
-    def client
-      Kubeclient::Client.new(
-        endpoint_uri,
-        api_version,
-        ssl_options: config.context.ssl_options,
-        auth_options: config.context.auth_options,
-      )
-    end
-
-    def endpoint_uri
-      File.join(api_endpoint, 'apis', api_group)
-    end
-
-    def api_endpoint
-      config.context.api_endpoint
     end
 
     def config

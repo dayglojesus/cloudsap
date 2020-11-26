@@ -28,9 +28,28 @@ module Cloudsap
       end
     end
 
+    def sanitize_resource(object)
+      filtered = Marshal.load( Marshal.dump(object) )
+      filtered.tap do |dat|
+        dat[:metadata].delete(:generation)
+        dat[:metadata].delete(:managedFields)
+        dat[:metadata][:annotations].delete(:"kubectl.kubernetes.io/last-applied-configuration")
+      end
+    end
+
     def kubeconfig
       config = ENV['KUBECONFIG'] || File.expand_path('~/.kube/config')
       Kubeclient::Config.read(config)
+    end
+
+    def csa_client
+      config = kubeconfig
+      Kubeclient::Client.new(
+        File.join(config.context.api_endpoint, 'apis', api_group),
+        api_version,
+        ssl_options: config.context.ssl_options,
+        auth_options: config.context.auth_options,
+      )
     end
 
     def sa_client

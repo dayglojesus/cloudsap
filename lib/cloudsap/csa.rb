@@ -3,33 +3,55 @@
 module Cloudsap
   class CloudServiceAccount
     include Common
+    include Kubernetes
+    include Aws
 
-    attr_reader :resource, :type, :object, :provider_id
+    attr_reader :client, :resource, :type, :object, :provider_id
 
-    def self.load(resource)
-      new(resource)
+    def self.load(client, resource)
+      new(client, resource)
     end
 
-    def initialize(resource)
+    def initialize(client, resource)
+      @client      = client
       @resource    = resource.to_h
       @type        = @resource[:type]
       @object      = @resource[:object]
       @provider_id = @resource[:object][:spec][:cloudProvider].to_sym
-      @sa_client   = sa_client
+    end
+
+    def name
+      object[:metadata][:name]
+    end
+
+    def namespace
+      object[:metadata][:namespace]
+    end
+
+    def cluster_id
+      options[:cluster_id]
     end
 
     def create
-      # cluster_name + "sa" + namespace + sa_name
-      # create IAM Role
-      # create inline policy
-      # attach specified policies
-      # create k8s SA
+      binding.pry
+      # @client.patch_cloud_service_account_status 'demo01', , 'default'
+
+      # sa = ServiceAccount.new(object)
+      # sa.create
+      # role = Aws::IamRole.new
+
+      # create_role (unless exists?)
+      # put_role_policy (unless exists?)
+      # attach_role_policy (for each unless policy attached?)
+      # create  SA
+      # create CSA
     end
 
     def read
     end
 
     def update
+      binding.pry
     end
 
     def delete
@@ -41,13 +63,12 @@ module Cloudsap
 
     private
 
-    def iam_role_name(object)
-      iam_role_name = %W[
-        #{options[:cluster_id]}
-        sa
-        #{object[:metadata][:namespace]}
-        #{object[:metadata][:name]}
-      ].join('-')
+    def status
+      @client.get_cloud_service_account(name, namespace)
+    end
+
+    def status=(status)
+      @client.patch_cloud_service_account_status(name, status, namespace)
     end
   end
 end
