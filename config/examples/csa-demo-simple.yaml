@@ -1,0 +1,29 @@
+apiVersion: k8s.groundstate.io/v1alpha1
+kind: CloudServiceAccount
+metadata:
+  name: demo01
+spec:
+  policyTemplateValues:
+    foo: "foo"
+    bar: "bar"
+    baz: "baz"
+  rolePolicyTemplate: |-
+    {
+      "Version": "2012-10-17",
+      "Id": "S3-Account-Permissions",
+      "Statement": [{
+        "Sid": "1",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": [
+            "arn:aws:iam::182593585517:root"
+          ]
+        },
+        "Resource": "*",
+        "Actions": [
+          "s3:Get*",
+          "s3:List*",
+          "s3:Describe*"
+        ]
+      }]
+    }

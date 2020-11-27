@@ -33,7 +33,10 @@ module Cloudsap
     end
 
     def create
-      binding.pry
+      sa = ServiceAccount.new(object)
+      sa.apply
+
+      # binding.pry
       # @client.patch_cloud_service_account_status 'demo01', , 'default'
 
       # sa = ServiceAccount.new(object)
@@ -51,10 +54,11 @@ module Cloudsap
     end
 
     def update
-      binding.pry
     end
 
     def delete
+      sa = ServiceAccount.new(object)
+      sa.delete
     end
 
     def options

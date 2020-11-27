@@ -22,10 +22,12 @@ require 'prometheus/middleware/exporter'
 require 'cloudsap/version'
 require 'cloudsap/cli'
 require 'cloudsap/common'
+require 'cloudsap/abonas/kubeclient'
+require 'cloudsap/kubernetes/sa'
+require 'cloudsap/aws/iam'
 require 'cloudsap/csa'
 require 'cloudsap/metrics'
 require 'cloudsap/watcher'
-require 'cloudsap/aws/iam'
 
 module Cloudsap
   PROGRAM_NAME = 'cloudsap'
