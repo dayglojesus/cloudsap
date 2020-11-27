@@ -5,14 +5,15 @@ module Cloudsap
     class ServiceAccount
       include Common
 
-      attr_reader :object, :client
+      attr_reader :csa, :object, :client
 
-      def self.load(object)
+      def self.load(csa)
         new(object)
       end
 
-      def initialize(object)
-        @object = object.to_h
+      def initialize(csa)
+        @csa    = csa
+        @object = csa.object.to_h
         @client = sa_client
       end
 
@@ -41,14 +42,33 @@ module Cloudsap
       end
 
       def apply
-        client.apply_service_account(service_account, field_manager: program_label)
+        if (resource = apply_service_account)
+          update_status(resource)
+          logger.info("APPLY, #{self.class}: #{namespace}/#{name}")
+        end
       end
 
       def delete
-        client.delete_service_account(name, namespace)
+        if (resource = delete_service_account)
+          logger.info("DELETE, #{self.class}: #{namespace}/#{name}")
+        end
       end
 
       private
+
+      def update_status(resource)
+        filter = %i{ name creationTimestamp resourceVersion uid }
+        patch  = resource.metadata.to_h.slice(*filter)
+        csa.status = { status: { serviceAccount: patch } }
+      end
+
+      def apply_service_account
+        client.apply_service_account(service_account, field_manager: program_label)
+      end
+
+      def delete_service_account
+        client.delete_service_account(name, namespace)
+      end
 
       def service_account
         Kubeclient::Resource.new(generate_service_account)

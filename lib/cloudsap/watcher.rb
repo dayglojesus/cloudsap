@@ -30,25 +30,25 @@ module Cloudsap
     end
 
     def added(resource)
-      pp resource
+      # pp resource
       csa_load(resource)
       @metrics.added if @csa.create
     end
 
     def modified(resource)
-      pp resource
+      # pp resource
       csa_load(resource)
       @metrics.modified if @csa.update
     end
 
     def deleted(resource)
-      pp resource
+      # pp resource
       csa_load(resource)
       @metrics.deleted if @csa.delete
     end
 
     def error(resource)
-      pp resource
+      # pp resource
       @metrics.error
     end
 

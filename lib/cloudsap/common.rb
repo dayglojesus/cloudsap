@@ -7,22 +7,36 @@ module Cloudsap
     class AwsStsClientError < StandardError; end
 
     class << self
-      attr_reader :options
+      attr_reader :options, :logger
+
+      def logger
+        @logger ||= Logger.new(STDOUT).tap do |dat|
+          dat.progname  = PROGRAM_NAME
+          dat.formatter = proc do |severity, datetime, progname, msg|
+            {
+              level: severity,
+              timestamp: datetime.strftime(DATETIME_FMT),
+              app: progname,
+              message: msg.chomp
+            }.to_json + $/
+          end
+        end
+      end
 
       def aws_iam_client
-        @iam_client = Aws::IAM::Client.new(
+        @iam_client ||= Aws::IAM::Client.new(
           region: options.aws_region,
         )
       end
 
       def aws_eks_client
-        @eks_client = Aws::EKS::Client.new(
+        @eks_client ||= Aws::EKS::Client.new(
           region: aws_region,
         )
       end
 
       def aws_sts_client
-        @sts_client = Aws::STS::Client.new(
+        @sts_client ||= Aws::STS::Client.new(
           region: aws_region,
         )
       end
@@ -30,6 +44,14 @@ module Cloudsap
       def options=(hash)
         @options = hash.transform_keys(&:to_sym)
       end
+    end
+
+    def options
+      Common.options
+    end
+
+    def logger
+      Common.logger
     end
 
     def oidc_provider

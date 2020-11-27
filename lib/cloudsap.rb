@@ -19,6 +19,13 @@ require 'prometheus/client'
 require 'prometheus/middleware/collector'
 require 'prometheus/middleware/exporter'
 
+module Cloudsap
+  DATETIME_FMT = '%Y-%m-%dT%H:%M:%S.%9N %z'
+  PROGRAM_NAME = 'cloudsap'
+  API_GROUP    = 'k8s.groundstate.io'
+  API_VERSION  = 'v1alpha1'
+end
+
 require 'cloudsap/version'
 require 'cloudsap/cli'
 require 'cloudsap/common'
@@ -28,11 +35,5 @@ require 'cloudsap/aws/iam'
 require 'cloudsap/csa'
 require 'cloudsap/metrics'
 require 'cloudsap/watcher'
-
-module Cloudsap
-  PROGRAM_NAME = 'cloudsap'
-  API_GROUP    = 'k8s.groundstate.io'
-  API_VERSION  = 'v1alpha1'
-end
 
 include Cloudsap

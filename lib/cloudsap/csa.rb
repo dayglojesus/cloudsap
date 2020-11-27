@@ -33,21 +33,21 @@ module Cloudsap
     end
 
     def create
-      sa = ServiceAccount.new(object)
+      logger.info("#{type}, #{self.class}: #{namespace}/#{name}")
+      sa = ServiceAccount.new(self)
       sa.apply
 
-      # binding.pry
       # @client.patch_cloud_service_account_status 'demo01', , 'default'
-
-      # sa = ServiceAccount.new(object)
-      # sa.create
-      # role = Aws::IamRole.new
 
       # create_role (unless exists?)
       # put_role_policy (unless exists?)
       # attach_role_policy (for each unless policy attached?)
       # create  SA
       # create CSA
+
+    rescue => error
+      logger.error(error.message)
+      puts error.backtrace if options[:debug]
     end
 
     def read
@@ -57,22 +57,17 @@ module Cloudsap
     end
 
     def delete
-      sa = ServiceAccount.new(object)
+      logger.info("#{type}, #{self.class}: #{namespace}/#{name}")
+      sa = ServiceAccount.new(self)
       sa.delete
     end
 
-    def options
-      Common.options
-    end
-
-    private
-
     def status
-      @client.get_cloud_service_account(name, namespace)
+      client.get_cloud_service_account(name, namespace)
     end
 
     def status=(status)
-      @client.patch_cloud_service_account_status(name, status, namespace)
+      client.patch_cloud_service_account_status(name, status, namespace)
     end
   end
 end
