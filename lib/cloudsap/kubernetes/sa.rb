@@ -8,7 +8,7 @@ module Cloudsap
       attr_reader :csa, :object, :client
 
       def self.load(csa)
-        new(object)
+        new(csa)
       end
 
       def initialize(csa)

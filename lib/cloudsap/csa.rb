@@ -37,6 +37,10 @@ module Cloudsap
       sa = ServiceAccount.new(self)
       sa.apply
 
+
+      role = IamRole.new(self)
+      role.apply
+
       # @client.patch_cloud_service_account_status 'demo01', , 'default'
 
       # create_role (unless exists?)
@@ -50,16 +54,19 @@ module Cloudsap
       puts error.backtrace if options[:debug]
     end
 
-    def read
-    end
-
     def update
     end
 
     def delete
-      logger.info("#{type}, #{self.class}: #{namespace}/#{name}")
       sa = ServiceAccount.new(self)
       sa.delete
+      role = IamRole.new(self)
+      role.delete
+
+      logger.info("#{type}, #{self.class}: #{namespace}/#{name}")
+    rescue => error
+      logger.error(error.message)
+      puts error.backtrace if options[:debug]
     end
 
     def status

@@ -12,9 +12,9 @@ module Cloudsap
     desc 'controller', 'Run Cloudsap controller'
     option :aws_region,   type: :string,  default: ENV['AWS_REGION'], required: true
     option :cluster_name, type: :string,  default: ENV['CLOUDSAP_CLUSTER_NAME'], required: true
-    option :debug,        type: :boolean, default: (ENV['CLOUDSAP_DEBUG']    || false)
+    option :debug,        type: :boolean, default: (ENV['CLOUDSAP_DEBUG'] || false)
     def controller
-      Cloudsap::Common.options = options
+      Cloudsap::Common.setup(options)
 
       registry = Prometheus::Client.registry
       metrics  = Cloudsap::Metrics.new(registry)
@@ -41,6 +41,7 @@ module Cloudsap
         end
       end
 
+      Thin::Logging.logger = Cloudsap::Common.logger
       Rack::Server.start(app: app)
     end
   end

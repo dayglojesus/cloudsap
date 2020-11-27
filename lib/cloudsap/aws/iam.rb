@@ -7,60 +7,38 @@ module Cloudsap
     class IamRole
       include Common
 
-      def initialize(object)
-        @object       = object
-        @sa_name      = object[:metadata][:name]
-        @sa_namespace = object[:metadata][:namespace]
+      attr_reader :csa, :object, :sa_name, :sa_namespace, :client
+
+      def self.load(csa)
+        new(csa)
       end
 
-      def create
+      def initialize(csa)
+        @csa          = csa
+        @object       = csa.object.to_h
+        @sa_name      = object[:metadata][:name]
+        @sa_namespace = object[:metadata][:namespace]
+        @client       = iam_client
+      end
+
+      def name
+        @name ||= "#{cluster_name}-sa-#{sa_namespace}-#{sa_name}"
+      end
+
+      def apply
+        require 'pry'
+        binding.pry
+
         resp = create_role
 
         return resp if resp.successful?
         raise IamRoleError.new("Error creating IAM Role: #{resp.error}")
       end
 
-      def update
-      end
-
       def delete
       end
 
       private
-      attr_reader :sa_name, :sa_namespace
-
-      def client
-        Common.aws_iam_client
-      end
-
-      def options
-        Common.options
-      end
-
-      def cluster_name
-        options[:cluster_name]
-      end
-
-      def iam_role_name
-        "#{cluster_name}-sa-#{sa_namespace}-#{sa_name}"
-      end
-
-      def oidc_provider
-        eks_client = Common.aws_eks_client
-        resp       = eks_client.describe_cluster(name: cluster_name)
-        if resp.successful?
-          uri = URI.parse(resp.cluster.identity.oidc.issuer)
-          return File.join(uri.host, uri.path)
-        end
-        raise IamRoleError.new("Error fetching OIDC provider: #{resp.error}")
-      end
-
-      def account_id
-        sts_client = Common.aws_sts_client
-        resp       = sts_client.get_caller_identity
-        return resp.account if resp.successful?
-        raise IamRoleError.new("Error fetching AWS account id: #{resp.error}")
-      end
 
       def generate_assume_role_policy_document
         {
@@ -111,7 +89,7 @@ module Cloudsap
       def create_role
         resp = client.create_role({
           path: '/',
-          role_name: iam_role_name,
+          role_name: name,
           assume_role_policy_document: generate_assume_role_policy_document,
           description: "IAM Role for ServiceAccount #{sa_namespace}/#{sa_name}",
           max_session_duration: 1,
@@ -119,7 +97,7 @@ module Cloudsap
           tags: [
             {
               key: 'Name',
-              value: iam_role_name, # required
+              value: name, # required
             },
           ],
         })
