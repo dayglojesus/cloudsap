@@ -27,3 +27,14 @@ spec:
         ]
       }]
     }
+  rolePolicyAttachments:
+    - "arn:aws:iam::aws:policy/AmazonDocDBReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AlexaForBusinessReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCloudDirectoryReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonConnectReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCognitoReadOnly"
+    - "arn:aws:iam::aws:policy/AmazonChimeReadOnly"
+    - "arn:aws:iam::aws:policy/AmazonAppStreamReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonAppFlowReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCodeGuruReviewerReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCodeGuruProfilerReadOnlyAccess"

@@ -6,7 +6,7 @@ module Kubeclient
       @entities.values.each do |entity|
         define_singleton_method("get_#{entity.method_names[0]}_status") \
         do |name, namespace = nil, opts = {}|
-          get_entity(entity.resource_name, name, namespace, opts)
+          get_entity_status(entity.resource_name, name, namespace, opts)
         end
         define_singleton_method("patch_#{entity.method_names[0]}_status") \
         do |name, patch, namespace = nil|
