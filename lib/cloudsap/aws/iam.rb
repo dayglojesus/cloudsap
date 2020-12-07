@@ -90,8 +90,13 @@ module Cloudsap
         puts error.backtrace if options[:debug]
       end
 
+      def current_policy_attachements(resources)
+        current = (resources[:attached_policies] || [])
+        current.map { |h| h[:policy_arn] }
+      end
+
       def update_policy_attachments(resources)
-        current  = resources[:attached_policies].map {|h| h[:policy_arn] }
+        current  = current_policy_attachements(resources)
         assigned = policy_attachments
         removals = current - assigned
         removals.each { |arn| detach_role_policy(arn) }
@@ -99,7 +104,7 @@ module Cloudsap
       end
 
       def delete_policy_attachments(resources)
-        current = resources[:attached_policies].map {|h| h[:policy_arn] }
+        current = current_policy_attachements(resources)
         current.each { |arn| detach_role_policy(arn) }
       end
 
