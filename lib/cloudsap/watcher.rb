@@ -2,7 +2,7 @@
 
 module Cloudsap
   class Watcher
-    attr_reader :api_group, :api_version, :client
+    attr_reader :api_group, :api_version, :client, :stack, :metrics
 
     include Common
 
@@ -16,44 +16,36 @@ module Cloudsap
       @api_group   = api_group
       @api_version = api_version
       @client      = csa_client
+      @stack       = {}
     end
 
     def watch
       version = @client.get_cloud_service_accounts.resourceVersion
-      @client.watch_cloud_service_accounts(resource_version: version) do |res|
-        self.send(res.type.downcase.to_sym, res)
+      @client.watch_cloud_service_accounts(resource_version: version) do |event|
+        process_event(event)
       end
     end
 
-    def csa_load(resource)
-      @csa = CloudServiceAccount.load(client, resource)
+    private
+
+    def process_event(event)
+      name      = event[:object][:metadata][:name]
+      namespace = event[:object][:metadata][:namespace]
+      operation = event[:type].downcase.to_sym
+      identity  = "#{namespace}/#{name}"
+
+      logger.info("#{event[:type]}, event for #{identity}")
+      if stack[identity]
+        stack[identity].refresh(event)
+      else
+        stack[identity] = csa_load(event)
+      end
+
+      stack[identity].async.send(operation)
     end
 
-    def added(resource)
-      # pp resource
-      csa_load(resource)
-      @metrics.added if @csa.create
-    end
-
-    def modified(resource)
-      # pp resource
-      csa_load(resource)
-      @metrics.modified if @csa.update
-    end
-
-    def deleted(resource)
-      # pp resource
-      csa_load(resource)
-      @metrics.deleted if @csa.delete
-    end
-
-    def error(resource)
-      # pp resource
-      @metrics.error
-    end
-
-    def config
-      kubeconfig
+    def csa_load(event)
+      CloudServiceAccount.load(stack, metrics, client, event)
     end
   end
 end

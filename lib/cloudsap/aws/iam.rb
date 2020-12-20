@@ -166,7 +166,7 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error getting IAM Role: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.error(error.message)
+        logger.warn(error.message)
         puts error.backtrace if options[:debug]
       end
 
@@ -175,7 +175,7 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error getting IAM Role Policy: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.error(error.message)
+        logger.warn(error.message)
         puts error.backtrace if options[:debug]
       end
 
@@ -184,7 +184,7 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error listing IAM Role Policy Attachments: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.error(error.message)
+        logger.warn(error.message)
         puts error.backtrace if options[:debug]
       end
 
@@ -199,7 +199,7 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error deleting IAM Role: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.error(error.message)
+        logger.warn(error.message)
         puts error.backtrace if options[:debug]
       end
 
@@ -253,7 +253,7 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error putting IAM Role Policy: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.error(error.message)
+        logger.warn(error.message)
         puts error.backtrace if options[:debug]
       end
 
@@ -274,7 +274,7 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error detaching IAM Role Policy: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.error(error.message)
+        logger.warn(error.message)
         puts error.backtrace if options[:debug]
       end
     end

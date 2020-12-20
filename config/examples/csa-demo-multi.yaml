@@ -1,0 +1,124 @@
+apiVersion: k8s.groundstate.io/v1alpha1
+kind: CloudServiceAccount
+metadata:
+  name: demo01
+spec:
+  policyTemplateValues:
+    foo: "foo"
+    bar: "bar"
+    baz: "baz"
+  rolePolicyTemplate: |-
+    {
+      "Version": "2012-10-17",
+      "Id": "S3-Account-Permissions",
+      "Statement": [{
+        "Sid": "1",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": [
+            "arn:aws:iam::182593585517:root"
+          ]
+        },
+        "Resource": "*",
+        "Actions": [
+          "s3:Get*",
+          "s3:List*",
+          "s3:Describe*"
+        ]
+      }]
+    }
+  rolePolicyAttachments:
+    - "arn:aws:iam::aws:policy/AmazonDocDBReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AlexaForBusinessReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCloudDirectoryReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonConnectReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCognitoReadOnly"
+    - "arn:aws:iam::aws:policy/AmazonChimeReadOnly"
+    - "arn:aws:iam::aws:policy/AmazonAppStreamReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonAppFlowReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCodeGuruReviewerReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCodeGuruProfilerReadOnlyAccess"
+
+---
+apiVersion: k8s.groundstate.io/v1alpha1
+kind: CloudServiceAccount
+metadata:
+  name: demo02
+spec:
+  policyTemplateValues:
+    foo: "foo"
+    bar: "bar"
+    baz: "baz"
+  rolePolicyTemplate: |-
+    {
+      "Version": "2012-10-17",
+      "Id": "S3-Account-Permissions",
+      "Statement": [{
+        "Sid": "1",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": [
+            "arn:aws:iam::182593585517:root"
+          ]
+        },
+        "Resource": "*",
+        "Actions": [
+          "s3:Get*",
+          "s3:List*",
+          "s3:Describe*"
+        ]
+      }]
+    }
+  rolePolicyAttachments:
+    - "arn:aws:iam::aws:policy/AmazonDocDBReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AlexaForBusinessReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCloudDirectoryReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonConnectReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCognitoReadOnly"
+    - "arn:aws:iam::aws:policy/AmazonChimeReadOnly"
+    - "arn:aws:iam::aws:policy/AmazonAppStreamReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonAppFlowReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCodeGuruReviewerReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCodeGuruProfilerReadOnlyAccess"
+
+---
+apiVersion: k8s.groundstate.io/v1alpha1
+kind: CloudServiceAccount
+metadata:
+  name: demo03
+spec:
+  policyTemplateValues:
+    foo: "foo"
+    bar: "bar"
+    baz: "baz"
+  rolePolicyTemplate: |-
+    {
+      "Version": "2012-10-17",
+      "Id": "S3-Account-Permissions",
+      "Statement": [{
+        "Sid": "1",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": [
+            "arn:aws:iam::182593585517:root"
+          ]
+        },
+        "Resource": "*",
+        "Actions": [
+          "s3:Get*",
+          "s3:List*",
+          "s3:Describe*"
+        ]
+      }]
+    }
+  rolePolicyAttachments:
+    - "arn:aws:iam::aws:policy/AmazonDocDBReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AlexaForBusinessReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCloudDirectoryReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonConnectReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCognitoReadOnly"
+    - "arn:aws:iam::aws:policy/AmazonChimeReadOnly"
+    - "arn:aws:iam::aws:policy/AmazonAppStreamReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonAppFlowReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCodeGuruReviewerReadOnlyAccess"
+    - "arn:aws:iam::aws:policy/AmazonCodeGuruProfilerReadOnlyAccess"
