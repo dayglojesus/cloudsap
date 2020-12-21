@@ -74,6 +74,9 @@ module Cloudsap
       @status      = @object[:status] ||= {}
       @annotations = @metadata[:annotations]
       @provider_id = @event[:object][:spec][:cloudProvider].to_sym
+    rescue => error
+      log_exception(error)
+      binding.pry
     end
 
     def status=(data)
@@ -98,7 +101,7 @@ module Cloudsap
           }
         }
       }
-      status.merge!(data)
+      status.deep_merge(data)
       client.patch_cloud_service_account_status(name, status, namespace)
     end
 
@@ -108,10 +111,11 @@ module Cloudsap
       sa.apply
       role = IamRole.new(self)
       role.apply
-      update_status
     rescue => error
-      logger.error(error.message)
-      puts error.backtrace if options[:debug]
+      log_exception(error)
+      show_backtrace(error)
+    ensure
+      update_status
     end
 
     alias update create
@@ -123,8 +127,8 @@ module Cloudsap
       sa.delete
       logger.info("#{__callee__.upcase}, #{self.class}: #{namespace}/#{name}")
     rescue => error
-      logger.error(error.message)
-      puts error.backtrace if options[:debug]
+      log_exception(error)
+      show_backtrace(error)
     end
 
     def spec_changed?

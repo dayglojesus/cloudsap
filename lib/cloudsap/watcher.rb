@@ -42,7 +42,7 @@ module Cloudsap
       namespace = event.dig(:object, :metadata, :namespace) || 'unknown'
       operation = event[:type].downcase.to_sym
       identity  = "#{namespace}/#{name}"
-      logger.info("#{event[:type]}, event for #{identity} [#{version}]")
+      logger.debug("#{event[:type]}, event for #{identity} [#{version}]")
 
       return false unless event[:object]
 

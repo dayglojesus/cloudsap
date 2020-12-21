@@ -35,9 +35,12 @@ module Cloudsap
 
         return resources if digest(resources) == status.dig(:digest)
 
-        resources = create_resources(resources)
-        update_status(resources)
-        logger.info("APPLY, #{self.class}: #{name}")
+        if resources = create_resources(resources)
+          update_status(resources)
+          logger.info("APPLY, #{self.class}: #{name}")
+        else
+          logger.error("ERROR, #{self.class}: #{name}")
+        end
       end
 
       def delete
@@ -76,7 +79,9 @@ module Cloudsap
           get_role_policy
           list_attached_role_policies
         }.each_with_object({}) do |meth, memo|
-          memo.merge!(self.send(meth).to_h)
+          data = self.send(meth).to_h
+          return memo unless data
+          memo.merge!(data)
         end
       end
 
@@ -86,8 +91,8 @@ module Cloudsap
         update_policy_attachments(resources)
         fetch_resources
       rescue => error
-        logger.error(error.message)
-        puts error.backtrace if options[:debug]
+        log_exception(error)
+        show_backtrace(error)
       end
 
       def current_policy_attachements(resources)
@@ -145,16 +150,7 @@ module Cloudsap
       end
 
       def generate_role_policy
-        # policy_template
-        # policy_template_values
-        {
-          'Version' => '2012-10-17',
-          'Statement' => {
-            'Effect' => 'Allow',
-            'Action' => 's3:*',
-            'Resource' => '*',
-          }
-        }.to_json
+        ERB.new(policy_template).result_with_hash(policy_template_values)
       end
 
       ###############################################################
@@ -166,8 +162,8 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error getting IAM Role: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.warn(error.message)
-        puts error.backtrace if options[:debug]
+        log_exception(error, level=:debug)
+        nil
       end
 
       def get_role_policy
@@ -175,8 +171,8 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error getting IAM Role Policy: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.warn(error.message)
-        puts error.backtrace if options[:debug]
+        log_exception(error, level=:debug)
+        nil
       end
 
       def list_attached_role_policies
@@ -184,8 +180,8 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error listing IAM Role Policy Attachments: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.warn(error.message)
-        puts error.backtrace if options[:debug]
+        log_exception(error, level=:debug)
+        nil
       end
 
       ###############################################################
@@ -199,8 +195,7 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error deleting IAM Role: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.warn(error.message)
-        puts error.backtrace if options[:debug]
+        log_exception(error, level=:debug)
       end
 
       def create_role
@@ -212,7 +207,7 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error creating IAM Role: #{resp.error}")
       rescue ::Aws::IAM::Errors::EntityAlreadyExists => error
-        logger.warn(error.message)
+        log_exception(error, level=:debug)
         update_role
         update_assume_role_policy
       end
@@ -253,8 +248,7 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error putting IAM Role Policy: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.warn(error.message)
-        puts error.backtrace if options[:debug]
+        log_exception(error, level=:debug)
       end
 
       def attach_role_policy(arn)
@@ -274,8 +268,7 @@ module Cloudsap
         return resp if resp.successful?
         raise IamRoleError.new("Error detaching IAM Role Policy: #{resp.error}")
       rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        logger.warn(error.message)
-        puts error.backtrace if options[:debug]
+        log_exception(error, level=:debug)
       end
     end
   end

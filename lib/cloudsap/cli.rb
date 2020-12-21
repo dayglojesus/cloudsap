@@ -25,8 +25,8 @@ module Cloudsap
         begin
           Cloudsap::Watcher.run(API_GROUP, API_VERSION, metrics)
         rescue => error
-          puts error.message
-          puts error.backtrace if options[:debug]
+          Cloudsap::Common.log_exception(error)
+          Cloudsap::Common.show_backtrace(error)
           sleep 5
           metrics.restart
           retry

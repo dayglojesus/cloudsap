@@ -7,13 +7,15 @@ module Cloudsap
     class AwsStsClientError < StandardError; end
 
     class << self
-      attr_reader :options, :logger, :aws_iam_client, :aws_eks_client,
-        :aws_sts_client, :oidc_provider, :account_id
+      attr_reader :options, :logger, :log_exception, :show_backtrace,
+        :aws_iam_client, :aws_eks_client, :aws_sts_client, :oidc_provider,
+        :account_id
 
       def setup(options_hash)
+        @options = OpenStruct.new(options_hash)
+
         logger.info 'Initializing ...'
 
-        @options        = OpenStruct.new(options_hash)
         @aws_sts_client = init_aws_sts_client
         @aws_iam_client = init_aws_iam_client
         @aws_eks_client = init_aws_eks_client rescue nil
@@ -26,14 +28,29 @@ module Cloudsap
         @logger ||= init_logger
       end
 
+      def log_exception(obj, level=:error)
+        logger.send(level, "#{obj.class}: #{obj.message} [#{error_line(obj)}]")
+      end
+
+      def show_backtrace(obj)
+        $stderr.puts obj.backtrace if options.debug
+      end
+
       def cluster_name
         options.cluster_name
       end
 
       private
 
+      def error_line(error)
+        line = error.backtrace.find { |l| l =~ /cloudsap\/lib\/cloudsap/ }
+        file, line_num, meth = line.split(':')
+        "#{File.basename(file)}:#{line_num}"
+      end
+
       def init_logger
         logger = Logger.new(STDOUT).tap do |dat|
+          dat.level     = @options.debug ? Logger::DEBUG : Logger::INFO
           dat.progname  = PROGRAM_NAME
           dat.formatter = proc do |severity, datetime, progname, msg|
             {
@@ -86,6 +103,14 @@ module Cloudsap
 
     def logger
       Common.logger
+    end
+
+    def log_exception(error, level=:error)
+      Common.log_exception(error, level)
+    end
+
+    def show_backtrace(error)
+      Common.show_backtrace(error)
     end
 
     def iam_client

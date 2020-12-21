@@ -8,19 +8,7 @@ spec:
     bucket: arn:aws:s3:::hodl
   rolePolicyTemplate: |-
     {
-      "Version": "2012-10-17",
-      "Id": "S3-Account-Permissions for <%= account %>",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Action": [
-            "s3:Get*",
-            "s3:List*",
-            "s3:Describe*"
-          ],
-          "Resource": "<%= bucket %>"
-        }
-      ]
+      "HERP": "DERP"
     }
   rolePolicyAttachments:
     - "arn:aws:iam::aws:policy/AmazonDocDBReadOnlyAccess"

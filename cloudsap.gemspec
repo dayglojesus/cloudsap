@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'rake', '>= 13.0.1'
   spec.add_dependency 'concurrent-ruby'
+  spec.add_dependency 'deep_merge'
   spec.add_dependency 'erb', '~> 2.2'
   spec.add_dependency 'rack', '~> 2.2'
   spec.add_dependency 'thin', '~> 1.7'
