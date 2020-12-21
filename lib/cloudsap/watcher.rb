@@ -20,21 +20,32 @@ module Cloudsap
     end
 
     def watch
-      version = @client.get_cloud_service_accounts.resourceVersion
-      @client.watch_cloud_service_accounts(resource_version: version) do |event|
-        process_event(event)
+      version ||= fetch_resource_version
+      while true
+        logger.info("Watching #{@client.api_endpoint.to_s} [#{version}]")
+        @client.watch_cloud_service_accounts(resource_version: version) do |event|
+          process_event(event, version)
+          version = fetch_resource_version
+        end
+        logger.error("Watch ended? [#{version}]")
       end
     end
 
     private
 
-    def process_event(event)
-      name      = event[:object][:metadata][:name]
-      namespace = event[:object][:metadata][:namespace]
+    def fetch_resource_version
+      @client.get_cloud_service_accounts.resourceVersion
+    end
+
+    def process_event(event, version)
+      name      = event.dig(:object, :metadata, :name)      || 'unknown'
+      namespace = event.dig(:object, :metadata, :namespace) || 'unknown'
       operation = event[:type].downcase.to_sym
       identity  = "#{namespace}/#{name}"
+      logger.info("#{event[:type]}, event for #{identity} [#{version}]")
 
-      logger.info("#{event[:type]}, event for #{identity}")
+      return false unless event[:object]
+
       if stack[identity]
         stack[identity].refresh(event)
       else
