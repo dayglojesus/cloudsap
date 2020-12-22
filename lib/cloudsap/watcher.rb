@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module Cloudsap
+  class WatcherError < StandardError; end
+
   class Watcher
     attr_reader :api_group, :api_version, :client, :stack, :metrics
 
@@ -24,10 +26,12 @@ module Cloudsap
       while true
         logger.info("Watching #{@client.api_endpoint.to_s} [#{version}]")
         @client.watch_cloud_service_accounts(resource_version: version) do |event|
-          process_event(event, version)
-          version = fetch_resource_version
+          if check_error_status(event, version)
+            process_event(event, version)
+          end
         end
-        logger.error("Watch ended? [#{version}]")
+        version = fetch_resource_version
+        logger.warn("Restarting watch ... [#{version}]")
       end
     end
 
@@ -38,13 +42,11 @@ module Cloudsap
     end
 
     def process_event(event, version)
-      name      = event.dig(:object, :metadata, :name)      || 'unknown'
-      namespace = event.dig(:object, :metadata, :namespace) || 'unknown'
+      name      = event[:object][:metadata][:name]
+      namespace = event[:object][:metadata][:namespace]
       operation = event[:type].downcase.to_sym
       identity  = "#{namespace}/#{name}"
       logger.debug("#{event[:type]}, event for #{identity} [#{version}]")
-
-      return false unless event[:object]
 
       if stack[identity]
         stack[identity].refresh(event)
@@ -53,6 +55,18 @@ module Cloudsap
       end
 
       stack[identity].async.send(operation)
+    end
+
+    def check_error_status(event, version)
+      return true unless event[:type] == 'ERROR'
+      status = event[:object][:status]
+      reason = event[:object][:reason]
+      if status == 'Failure' && reason == 'Expired'
+        message = event[:object][:message]
+        logger.warn("#{status}, reason: #{reason}, #{message} [#{version}]")
+        return false
+      end
+      raise WatcherError.new("An unknown error occurred: #{event}")
     end
 
     def csa_load(event)

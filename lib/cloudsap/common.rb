@@ -68,7 +68,7 @@ module Cloudsap
         resp   = client.get_caller_identity
         if resp.successful?
           @account_id = resp.account
-          logger.info '::Aws::STS::Client initialized'
+          logger.debug '::Aws::STS::Client initialized'
           return client
         end
         raise AwsEksClientError.new('Initialization failed!')
@@ -80,7 +80,7 @@ module Cloudsap
         if resp.successful?
           uri = URI.parse(resp.cluster.identity.oidc.issuer)
           @oidc_provider = File.join(uri.host, uri.path)
-          logger.info '::Aws::EKS::Client initialized'
+          logger.debug '::Aws::EKS::Client initialized'
           return client
         end
         raise AwsEksClientError.new('Initialization failed!')
@@ -90,7 +90,7 @@ module Cloudsap
         client = ::Aws::IAM::Client.new(region: options.aws_region)
         resp   = client.list_roles(path_prefix: '/', max_items: 1)
         if resp.successful?
-          logger.info '::Aws::IAM::Client initialized'
+          logger.debug '::Aws::IAM::Client initialized'
           return client
         end
         raise AwsIamClientError.new('Initialization failed!')

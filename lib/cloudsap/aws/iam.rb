@@ -31,7 +31,6 @@ module Cloudsap
 
       def apply
         resources = fetch_resources
-        current   = digest(resources)
 
         return resources if digest(resources) == status.dig(:digest)
 

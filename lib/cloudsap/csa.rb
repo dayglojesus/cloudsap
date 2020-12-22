@@ -76,7 +76,6 @@ module Cloudsap
       @provider_id = @event[:object][:spec][:cloudProvider].to_sym
     rescue => error
       log_exception(error)
-      binding.pry
     end
 
     def status=(data)
