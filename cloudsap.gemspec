@@ -43,7 +43,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'pry', '>= 0.13'
   spec.add_development_dependency 'pry-remote',  '>= 0.1'
   spec.add_development_dependency 'rerun', '>= 0.13'
-  spec.add_development_dependency 'rspec', '>= 3.0'
-  spec.add_development_dependency 'rspec-command', '>= 1.0'
-  spec.add_development_dependency 'rubocop', '>= 0.71.0'
+  spec.add_development_dependency "minitest", "~> 5.0"
+  spec.add_development_dependency 'rubocop', '~> 0.71.0'
 end
