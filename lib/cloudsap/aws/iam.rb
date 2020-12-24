@@ -32,9 +32,9 @@ module Cloudsap
       def apply
         resources = fetch_resources
 
-        return resources if digest(resources) == status.dig(:digest)
+        return resources if digest(resources) == status[:digest]
 
-        if resources = create_resources(resources)
+        if (resources = create_resources(resources))
           update_status(resources)
           logger.info("APPLY, #{self.class}: #{name}")
         else
@@ -73,13 +73,14 @@ module Cloudsap
       end
 
       def fetch_resources
-        %i{
+        %i[
           get_role
           get_role_policy
           list_attached_role_policies
-        }.each_with_object({}) do |meth, memo|
-          data = self.send(meth).to_h
+        ].each_with_object({}) do |meth, memo|
+          data = send(meth).to_h
           return memo unless data
+
           memo.merge!(data)
         end
       end
@@ -89,9 +90,9 @@ module Cloudsap
         put_role_policy
         update_policy_attachments(resources)
         fetch_resources
-      rescue => error
-        log_exception(error)
-        show_backtrace(error)
+      rescue StandardError => e
+        log_exception(e)
+        show_backtrace(e)
       end
 
       def current_policy_attachements(resources)
@@ -119,7 +120,7 @@ module Cloudsap
       def update_status(resources)
         patch = {
           name: resources[:role_name],
-          digest: digest(resources),
+          digest: digest(resources)
         }
         csa.status = { status: { iamRole: patch } }
       end
@@ -156,30 +157,35 @@ module Cloudsap
       # GETTERS
       ###############################################################
 
+      # rubocop:disable Naming/AccessorMethodName
       def get_role
-        resp = client.get_role({role_name: name})
+        resp = client.get_role({ role_name: name })
         return resp if resp.successful?
-        raise IamRoleError.new("Error getting IAM Role: #{resp.error}")
-      rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        log_exception(error, level=:debug)
+
+        raise IamRoleError, "Error getting IAM Role: #{resp.error}"
+      rescue ::Aws::IAM::Errors::NoSuchEntity => e
+        log_exception(e, :debug)
         nil
       end
 
       def get_role_policy
-        resp = client.get_role_policy({role_name: name, policy_name: name})
+        resp = client.get_role_policy({ role_name: name, policy_name: name })
         return resp if resp.successful?
-        raise IamRoleError.new("Error getting IAM Role Policy: #{resp.error}")
-      rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        log_exception(error, level=:debug)
+
+        raise IamRoleError, "Error getting IAM Role Policy: #{resp.error}"
+      rescue ::Aws::IAM::Errors::NoSuchEntity => e
+        log_exception(e, :debug)
         nil
       end
+      # rubocop:enable Naming/AccessorMethodName
 
       def list_attached_role_policies
-        resp = client.list_attached_role_policies({role_name: name})
+        resp = client.list_attached_role_policies({ role_name: name })
         return resp if resp.successful?
-        raise IamRoleError.new("Error listing IAM Role Policy Attachments: #{resp.error}")
-      rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        log_exception(error, level=:debug)
+
+        raise IamRoleError, "Error listing IAM Role Policy Attachments: #{resp.error}"
+      rescue ::Aws::IAM::Errors::NoSuchEntity => e
+        log_exception(e, :debug)
         nil
       end
 
@@ -189,87 +195,96 @@ module Cloudsap
 
       def delete_role
         resp = client.delete_role({
-          role_name: name,
-        })
+                                    role_name: name
+                                  })
         return resp if resp.successful?
-        raise IamRoleError.new("Error deleting IAM Role: #{resp.error}")
-      rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        log_exception(error, level=:debug)
+
+        raise IamRoleError, "Error deleting IAM Role: #{resp.error}"
+      rescue ::Aws::IAM::Errors::NoSuchEntity => e
+        log_exception(e, :debug)
       end
 
+      # rubocop:disable Layout/LineLength
       def create_role
         resp = client.create_role({
-          role_name: name,
-          description: description,
-          assume_role_policy_document: generate_assume_role_policy_document,
-        })
+                                    role_name: name,
+                                    description: description,
+                                    assume_role_policy_document: generate_assume_role_policy_document
+                                  })
         return resp if resp.successful?
-        raise IamRoleError.new("Error creating IAM Role: #{resp.error}")
-      rescue ::Aws::IAM::Errors::EntityAlreadyExists => error
-        log_exception(error, level=:debug)
+
+        raise IamRoleError, "Error creating IAM Role: #{resp.error}"
+      rescue ::Aws::IAM::Errors::EntityAlreadyExists => e
+        log_exception(e, :debug)
         update_role
         update_assume_role_policy
       end
 
       def update_role
         resp = client.update_role({
-          role_name: name,
-          description: description,
-        })
+                                    role_name: name,
+                                    description: description
+                                  })
         return resp if resp.successful?
-        raise IamRoleError.new("Error updating IAM Role: #{resp.error}")
+
+        raise IamRoleError, "Error updating IAM Role: #{resp.error}"
       end
 
       def update_assume_role_policy
         resp = client.update_assume_role_policy({
-          role_name: name,
-          policy_document: generate_assume_role_policy_document,
-        })
+                                                  role_name: name,
+                                                  policy_document: generate_assume_role_policy_document
+                                                })
         return resp if resp.successful?
-        raise IamRoleError.new("Error updating IAM Assume Role Policy: #{resp.error}")
+
+        raise IamRoleError, "Error updating IAM Assume Role Policy: #{resp.error}"
       end
+      # rubocop:enable Layout/LineLength
 
       def put_role_policy
         resp = client.put_role_policy({
-          role_name: name,
-          policy_name: name,
-          policy_document: generate_role_policy,
-        })
+                                        role_name: name,
+                                        policy_name: name,
+                                        policy_document: generate_role_policy
+                                      })
         return resp if resp.successful?
-        raise IamRoleError.new("Error putting IAM Role Policy: #{resp.error}")
+
+        raise IamRoleError, "Error putting IAM Role Policy: #{resp.error}"
       end
 
       def delete_role_policy
         resp = client.delete_role_policy({
-          role_name: name,
-          policy_name: name,
-        })
+                                           role_name: name,
+                                           policy_name: name
+                                         })
         return resp if resp.successful?
-        raise IamRoleError.new("Error putting IAM Role Policy: #{resp.error}")
-      rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        log_exception(error, level=:debug)
+
+        raise IamRoleError, "Error putting IAM Role Policy: #{resp.error}"
+      rescue ::Aws::IAM::Errors::NoSuchEntity => e
+        log_exception(e, :debug)
       end
 
       def attach_role_policy(arn)
         resp = client.attach_role_policy({
-          role_name: name,
-          policy_arn: arn
-        })
+                                           role_name: name,
+                                           policy_arn: arn
+                                         })
         return resp if resp.successful?
-        raise IamRoleError.new("Error attaching IAM Role Policy: #{resp.error}")
+
+        raise IamRoleError, "Error attaching IAM Role Policy: #{resp.error}"
       end
 
       def detach_role_policy(arn)
         resp = client.detach_role_policy({
-          role_name: name,
-          policy_arn: arn
-        })
+                                           role_name: name,
+                                           policy_arn: arn
+                                         })
         return resp if resp.successful?
-        raise IamRoleError.new("Error detaching IAM Role Policy: #{resp.error}")
-      rescue ::Aws::IAM::Errors::NoSuchEntity => error
-        log_exception(error, level=:debug)
+
+        raise IamRoleError, "Error detaching IAM Role Policy: #{resp.error}"
+      rescue ::Aws::IAM::Errors::NoSuchEntity => e
+        log_exception(e, :debug)
       end
     end
   end
 end
-

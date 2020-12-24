@@ -7,6 +7,29 @@ module Cloudsap
     end
 
     no_commands do
+      def setup_rack(registry)
+        Rack::Builder.new do
+          use Rack::Deflater
+          use Prometheus::Middleware::Exporter, registry: registry
+          map '/health' do
+            run ->(_env) { [200, { 'Content-Type' => 'text/html' }, ['OK']] }
+          end
+        end
+      end
+
+      def start_watch(api_group, api_version, metrics)
+        Thread.report_on_exception = true
+        Thread.abort_on_exception = true
+        Thread.new do
+          Cloudsap::Watcher.run(api_group, api_version, metrics)
+        rescue StandardError => e
+          Cloudsap::Common.log_exception(e)
+          Cloudsap::Common.show_backtrace(e)
+          sleep 5
+          metrics.restart
+          retry
+        end
+      end
     end
 
     desc 'controller', 'Run Cloudsap controller'
@@ -19,30 +42,10 @@ module Cloudsap
       registry = Prometheus::Client.registry
       metrics  = Cloudsap::Metrics.new(registry)
 
-      Thread.report_on_exception = true
-      Thread.abort_on_exception = true
-      Thread.new do
-        begin
-          Cloudsap::Watcher.run(API_GROUP, API_VERSION, metrics)
-        rescue => error
-          Cloudsap::Common.log_exception(error)
-          Cloudsap::Common.show_backtrace(error)
-          sleep 5
-          metrics.restart
-          retry
-        end
-      end
-
-      app = Rack::Builder.new do
-        use Rack::Deflater
-        use Prometheus::Middleware::Exporter, registry: registry
-        map '/health' do
-          run ->(env) { [200, {'Content-Type' => 'text/html'}, ['OK']] }
-        end
-      end
+      start_watch(API_GROUP, API_VERSION, metrics)
 
       Thin::Logging.logger = Cloudsap::Common.logger
-      Rack::Server.start(app: app)
+      Rack::Server.start(app: setup_rack(registry))
     end
   end
 end

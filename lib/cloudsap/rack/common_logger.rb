@@ -1,4 +1,7 @@
-#https://stackoverflow.com/questions/22219499/disable-rackcommonlogger-without-monkey-patching
+# frozen_string_literal: true
+
+# rubocop:disable all
+# https://stackoverflow.com/questions/22219499/disable-rackcommonlogger-without-monkey-patching
 module Rack
   class CommonLogger
     def log(env, status, header, began_at)
@@ -7,3 +10,4 @@ module Rack
     end
   end
 end
+# rubocop:enable all

@@ -49,7 +49,7 @@ module Cloudsap
       end
 
       def delete
-        if (resource = delete_service_account)
+        if delete_service_account
           logger.info("DELETE, #{self.class}: #{namespace}/#{name}")
         end
       end
@@ -57,7 +57,7 @@ module Cloudsap
       private
 
       def update_status(resource)
-        filter = %i{ name creationTimestamp resourceVersion uid }
+        filter = %i[name creationTimestamp resourceVersion uid]
         patch  = resource.metadata.to_h.slice(*filter)
         csa.status = { status: { serviceAccount: patch } }
       end
@@ -82,7 +82,7 @@ module Cloudsap
             name: name,
             namespace: namespace,
             annotations: annotations,
-            labels: labels,
+            labels: labels
           },
           automountServiceAccountToken: automount_service_account_token,
           imagePullSecrets: image_pull_secrets

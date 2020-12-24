@@ -8,8 +8,8 @@ module Cloudsap
 
     class << self
       attr_reader :options, :logger, :log_exception, :show_backtrace,
-        :aws_iam_client, :aws_eks_client, :aws_sts_client, :oidc_provider,
-        :account_id
+                  :aws_iam_client, :aws_eks_client, :aws_sts_client, :oidc_provider,
+                  :account_id
 
       def setup(options_hash)
         @options = OpenStruct.new(options_hash)
@@ -18,9 +18,13 @@ module Cloudsap
 
         @aws_sts_client = init_aws_sts_client
         @aws_iam_client = init_aws_iam_client
-        @aws_eks_client = init_aws_eks_client rescue nil
-      rescue => error
-        logger.fatal(error.message)
+        @aws_eks_client = begin
+          init_aws_eks_client
+        rescue StandardError
+          nil
+        end
+      rescue StandardError => e
+        logger.fatal(e.message)
         abort
       end
 
@@ -28,12 +32,12 @@ module Cloudsap
         @logger ||= init_logger
       end
 
-      def log_exception(obj, level=:error)
+      def log_exception(obj, level = :error)
         logger.send(level, "#{obj.class}: #{obj.message} [#{error_line(obj)}]")
       end
 
       def show_backtrace(obj)
-        $stderr.puts obj.backtrace if options.debug
+        warn obj.backtrace if options.debug
       end
 
       def cluster_name
@@ -43,13 +47,14 @@ module Cloudsap
       private
 
       def error_line(error)
-        line = error.backtrace.find { |l| l =~ /cloudsap\/lib\/cloudsap/ }
+        line = error.backtrace.find { |l| l =~ %r{cloudsap/lib/cloudsap} }
         file, line_num, meth = line.split(':')
         "#{File.basename(file)}:#{line_num}"
       end
 
+      # rubocop:disable Style/SpecialGlobalVars
       def init_logger
-        logger = Logger.new(STDOUT).tap do |dat|
+        Logger.new($stdout).tap do |dat|
           dat.level     = @options.debug ? Logger::DEBUG : Logger::INFO
           dat.progname  = PROGRAM_NAME
           dat.formatter = proc do |severity, datetime, progname, msg|
@@ -62,6 +67,7 @@ module Cloudsap
           end
         end
       end
+      # rubocop:enable Style/SpecialGlobalVars
 
       def init_aws_sts_client
         client = ::Aws::STS::Client.new(region: options.aws_region)
@@ -71,7 +77,7 @@ module Cloudsap
           logger.debug '::Aws::STS::Client initialized'
           return client
         end
-        raise AwsEksClientError.new('Initialization failed!')
+        raise AwsEksClientError, 'Initialization failed!'
       end
 
       def init_aws_eks_client
@@ -83,7 +89,7 @@ module Cloudsap
           logger.debug '::Aws::EKS::Client initialized'
           return client
         end
-        raise AwsEksClientError.new('Initialization failed!')
+        raise AwsEksClientError, 'Initialization failed!'
       end
 
       def init_aws_iam_client
@@ -93,7 +99,7 @@ module Cloudsap
           logger.debug '::Aws::IAM::Client initialized'
           return client
         end
-        raise AwsIamClientError.new('Initialization failed!')
+        raise AwsIamClientError, 'Initialization failed!'
       end
     end
 
@@ -105,7 +111,7 @@ module Cloudsap
       Common.logger
     end
 
-    def log_exception(error, level=:error)
+    def log_exception(error, level = :error)
       Common.log_exception(error, level)
     end
 
@@ -148,7 +154,7 @@ module Cloudsap
         File.join(config.context.api_endpoint, 'apis', api_group),
         api_version,
         ssl_options: config.context.ssl_options,
-        auth_options: config.context.auth_options,
+        auth_options: config.context.auth_options
       )
     end
 

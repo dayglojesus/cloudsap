@@ -8,7 +8,7 @@ module Cloudsap
     include Aws
 
     attr_reader :stack, :metrics, :client, :event, :type, :object, :metadata,
-      :annotations, :provider_id, :status
+                :annotations, :provider_id, :status
 
     def self.load(stack, metrics, client, event)
       new(stack, metrics, client, event)
@@ -49,6 +49,7 @@ module Cloudsap
 
     def modified
       return false unless spec_changed?
+
       metrics.modified if update
     ensure
       stack.delete(name)
@@ -74,8 +75,8 @@ module Cloudsap
       @status      = @object[:status] ||= {}
       @annotations = @metadata[:annotations]
       @provider_id = @event[:object][:spec][:cloudProvider].to_sym
-    rescue => error
-      log_exception(error)
+    rescue StandardError => e
+      log_exception(e)
     end
 
     def status=(data)
@@ -87,7 +88,7 @@ module Cloudsap
     def merge_opts
       {
         merge_hash_arrays: true,
-        overwrite_arrays: true,
+        overwrite_arrays: true
       }
     end
 
@@ -96,7 +97,7 @@ module Cloudsap
         status: {
           observed: {
             generation: generation,
-            resourceVersion: resource_version,
+            resourceVersion: resource_version
           }
         }
       }
@@ -110,9 +111,9 @@ module Cloudsap
       sa.apply
       role = IamRole.new(self)
       role.apply
-    rescue => error
-      log_exception(error)
-      show_backtrace(error)
+    rescue StandardError => e
+      log_exception(e)
+      show_backtrace(e)
     ensure
       update_status
     end
@@ -125,9 +126,9 @@ module Cloudsap
       sa = ServiceAccount.new(self)
       sa.delete
       logger.info("#{__callee__.upcase}, #{self.class}: #{namespace}/#{name}")
-    rescue => error
-      log_exception(error)
-      show_backtrace(error)
+    rescue StandardError => e
+      log_exception(e)
+      show_backtrace(e)
     end
 
     def spec_changed?

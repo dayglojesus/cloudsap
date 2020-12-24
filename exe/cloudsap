@@ -9,4 +9,3 @@ trap 'SIGINT' do
 end
 
 Cloudsap::CLI.start
-

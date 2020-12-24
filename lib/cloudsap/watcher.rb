@@ -23,8 +23,8 @@ module Cloudsap
 
     def watch
       version ||= fetch_resource_version
-      while true
-        logger.info("Watching #{@client.api_endpoint.to_s} [#{version}]")
+      loop do
+        logger.info("Watching #{@client.api_endpoint} [#{version}]")
         @client.watch_cloud_service_accounts(resource_version: version) do |event|
           if check_error_status(event, version)
             process_event(event, version)
@@ -59,6 +59,7 @@ module Cloudsap
 
     def check_error_status(event, version)
       return true unless event[:type] == 'ERROR'
+
       status = event[:object][:status]
       reason = event[:object][:reason]
       if status == 'Failure' && reason == 'Expired'
@@ -66,7 +67,7 @@ module Cloudsap
         logger.warn("#{status}, reason: #{reason}, #{message} [#{version}]")
         return false
       end
-      raise WatcherError.new("An unknown error occurred: #{event}")
+      raise WatcherError, "An unknown error occurred: #{event}"
     end
 
     def csa_load(event)

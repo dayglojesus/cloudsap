@@ -1,4 +1,4 @@
-require 'pry'
+# frozen_string_literal: true
 
 require 'concurrent'
 require 'deep_merge'
@@ -9,7 +9,6 @@ require 'json'
 require 'ostruct'
 require 'logger'
 require 'fileutils'
-require 'logger'
 require 'thor'
 require 'erb'
 require 'aws-sdk-iam'
@@ -39,5 +38,3 @@ require 'cloudsap/aws/iam'
 require 'cloudsap/csa'
 require 'cloudsap/metrics'
 require 'cloudsap/watcher'
-
-include Cloudsap
