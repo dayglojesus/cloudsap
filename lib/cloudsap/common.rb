@@ -7,9 +7,12 @@ module Cloudsap
     class AwsStsClientError < StandardError; end
 
     class << self
-      attr_reader :options, :logger, :log_exception, :show_backtrace,
-                  :aws_iam_client, :aws_eks_client, :aws_sts_client, :oidc_provider,
-                  :account_id
+      attr_reader :options, :aws_iam_client, :aws_eks_client, :aws_sts_client,
+                  :oidc_provider, :account_id
+
+      alias iam_client aws_iam_client
+      alias eks_client aws_eks_client
+      alias sts_client aws_sts_client
 
       def setup(options_hash)
         @options = OpenStruct.new(options_hash)
@@ -48,7 +51,7 @@ module Cloudsap
 
       def error_line(error)
         line = error.backtrace.find { |l| l =~ %r{cloudsap/lib/cloudsap} }
-        file, line_num, meth = line.split(':')
+        file, line_num, _meth = line.split(':')
         "#{File.basename(file)}:#{line_num}"
       end
 
@@ -103,46 +106,6 @@ module Cloudsap
       end
     end
 
-    def options
-      Common.options
-    end
-
-    def logger
-      Common.logger
-    end
-
-    def log_exception(error, level = :error)
-      Common.log_exception(error, level)
-    end
-
-    def show_backtrace(error)
-      Common.show_backtrace(error)
-    end
-
-    def iam_client
-      Common.aws_iam_client
-    end
-
-    def eks_client
-      Common.aws_eks_client
-    end
-
-    def sts_client
-      Common.aws_sts_client
-    end
-
-    def cluster_name
-      Common.cluster_name
-    end
-
-    def oidc_provider
-      Common.oidc_provider
-    end
-
-    def account_id
-      Common.account_id
-    end
-
     def kubeconfig
       config = ENV['KUBECONFIG'] || File.expand_path('~/.kube/config')
       Kubeclient::Config.read(config)
@@ -170,6 +133,15 @@ module Cloudsap
 
     def program_label
       [PROGRAM_NAME, API_VERSION].join('_')
+    end
+
+    def method_missing(method_name, *args)
+      super unless Common.respond_to?(method_name)
+      Common.send(method_name, *args)
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      Common.respond_to?(method_name) || super
     end
   end
 end
