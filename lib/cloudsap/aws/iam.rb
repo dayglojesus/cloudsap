@@ -136,12 +136,12 @@ module Cloudsap
             {
               'Effect' => 'Allow',
               'Principal' => {
-                'Federated' => "arn:aws:iam::#{account_id}:oidc-provider/#{oidc_provider}"
+                'Federated' => "arn:aws:iam::#{account_id}:oidc-provider/#{oidc_issuer}"
               },
               'Action' => 'sts:AssumeRoleWithWebIdentity',
               'Condition' => {
                 'StringEquals' => {
-                  "#{oidc_provider}:sub" => "system:serviceaccount:#{sa_namespace}:#{sa_name}"
+                  "#{oidc_issuer}:sub" => "system:serviceaccount:#{sa_namespace}:#{sa_name}"
                 }
               }
             }

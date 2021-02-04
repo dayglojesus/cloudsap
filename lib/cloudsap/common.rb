@@ -8,7 +8,7 @@ module Cloudsap
 
     class << self
       attr_reader :options, :aws_iam_client, :aws_eks_client, :aws_sts_client,
-                  :oidc_provider, :account_id
+                  :oidc_issuer, :account_id
 
       alias iam_client aws_iam_client
       alias eks_client aws_eks_client
@@ -21,10 +21,9 @@ module Cloudsap
 
         @aws_sts_client = init_aws_sts_client
         @aws_iam_client = init_aws_iam_client
-        @aws_eks_client = begin
-          init_aws_eks_client
-        rescue StandardError
-          nil
+
+        unless oidc_issuer
+          @aws_eks_client = init_aws_eks_client
         end
       rescue StandardError => e
         logger.fatal(e.message)
@@ -45,6 +44,10 @@ module Cloudsap
 
       def cluster_name
         options.cluster_name
+      end
+
+      def oidc_issuer
+        options.oidc_issuer
       end
 
       private
@@ -88,7 +91,7 @@ module Cloudsap
         resp   = client.describe_cluster(name: cluster_name)
         if resp.successful?
           uri = URI.parse(resp.cluster.identity.oidc.issuer)
-          @oidc_provider = File.join(uri.host, uri.path)
+          @oidc_issuer = File.join(uri.host, uri.path)
           logger.debug '::Aws::EKS::Client initialized'
           return client
         end
@@ -107,28 +110,43 @@ module Cloudsap
     end
 
     def kubeconfig
-      config = ENV['KUBECONFIG'] || File.expand_path('~/.kube/config')
-      Kubeclient::Config.read(config)
+      @kubeconfig ||= Kubeclient::Config.read(kubeconfig_path)
+    end
+
+    def api_endpoint
+      kubeconfig.context.api_endpoint
+    end
+
+    def ssl_options
+      kubeconfig.context.ssl_options
+    end
+
+    def auth_options
+      kubeconfig.context.auth_options
     end
 
     def csa_client
-      config = kubeconfig
       Kubeclient::Client.new(
-        File.join(config.context.api_endpoint, 'apis', api_group),
+        File.join(api_endpoint, 'apis', api_group),
         api_version,
-        ssl_options: config.context.ssl_options,
-        auth_options: config.context.auth_options
+        ssl_options: ssl_options,
+        auth_options: auth_options
       )
     end
 
     def sa_client
-      config = kubeconfig
       Kubeclient::Client.new(
-        config.context.api_endpoint,
+        api_endpoint,
         'v1',
-        ssl_options: config.context.ssl_options,
-        auth_options: config.context.auth_options
+        ssl_options: ssl_options,
+        auth_options: auth_options
       )
+    end
+
+    private
+
+    def kubeconfig_path
+      @kubeconfig_path ||= (ENV['KUBECONFIG'] || File.expand_path('~/.kube/config'))
     end
 
     def program_label
