@@ -34,11 +34,11 @@ module Cloudsap
       end
 
       def annotations
-        {}
+        { 'eks.amazonaws.com/role-arn' => csa.arn }
       end
 
       def labels
-        {}
+        { PROGRAM_NAME => VERSION }
       end
 
       def apply

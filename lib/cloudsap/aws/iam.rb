@@ -25,6 +25,10 @@ module Cloudsap
         @name ||= "#{cluster_name}-sa-#{sa_namespace}-#{sa_name}"
       end
 
+      def arn
+        @arn ||= get_role.to_h[:role][:arn]
+      end
+
       def description
         "IAM Role for ServiceAccount #{sa_namespace}/#{sa_name}"
       end
@@ -35,6 +39,7 @@ module Cloudsap
         return resources if digest(resources) == status[:digest]
 
         if (resources = create_resources(resources))
+          @arn = resources[:role][:arn]
           update_status(resources)
           logger.info("APPLY, #{self.class}: #{name}")
         else

@@ -8,7 +8,7 @@ module Cloudsap
     include Aws
 
     attr_reader :stack, :metrics, :client, :event, :type, :object, :metadata,
-                :annotations, :provider_id, :status
+                :annotations, :provider_id, :status, :arn
 
     def self.load(stack, metrics, client, event)
       new(stack, metrics, client, event)
@@ -109,6 +109,9 @@ module Cloudsap
       logger.info("#{__callee__.upcase}, #{self.class}: #{namespace}/#{name}")
       role = IamRole.new(self)
       role.apply
+
+      @arn = role.arn
+
       sa = ServiceAccount.new(self)
       sa.apply
     rescue StandardError => e
