@@ -107,10 +107,10 @@ module Cloudsap
 
     def create
       logger.info("#{__callee__.upcase}, #{self.class}: #{namespace}/#{name}")
-      sa = ServiceAccount.new(self)
-      sa.apply
       role = IamRole.new(self)
       role.apply
+      sa = ServiceAccount.new(self)
+      sa.apply
     rescue StandardError => e
       log_exception(e)
       show_backtrace(e)
