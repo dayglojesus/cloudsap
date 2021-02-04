@@ -4,8 +4,8 @@ metadata:
   name: demo01
 spec:
   policyTemplateValues:
-    account: 182593585517
-    bucket: arn:aws:s3:::hodl
+    account: 000000000000
+    bucket: arn:aws:s3:::buckit
   rolePolicyTemplate: |-
     {
       "Version": "2012-10-17",
@@ -27,9 +27,3 @@ spec:
     - "arn:aws:iam::aws:policy/AlexaForBusinessReadOnlyAccess"
     - "arn:aws:iam::aws:policy/AmazonCloudDirectoryReadOnlyAccess"
     - "arn:aws:iam::aws:policy/AmazonConnectReadOnlyAccess"
-    - "arn:aws:iam::aws:policy/AmazonCognitoReadOnly"
-    - "arn:aws:iam::aws:policy/AmazonChimeReadOnly"
-    - "arn:aws:iam::aws:policy/AmazonAppStreamReadOnlyAccess"
-    - "arn:aws:iam::aws:policy/AmazonAppFlowReadOnlyAccess"
-    - "arn:aws:iam::aws:policy/AmazonCodeGuruReviewerReadOnlyAccess"
-    - "arn:aws:iam::aws:policy/AmazonCodeGuruProfilerReadOnlyAccess"

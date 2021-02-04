@@ -1,24 +1,20 @@
 # Cloudsap
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/cloudsap`. To experiment with that code, run `bin/console` for an interactive prompt.
+Kubernetes CRD + Controller for creating and managing AWS IAM Roles for Service Accounts.
 
-TODO: Delete this and the text above, and describe your gem
+> ⚠️ Cloudsap is functional, but still **experimental**. Proceed with Caution.
+
+## Overview
+
+**[AWS IAM Roles for ServiceAccounts](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)** presents the most secure method for granting AWS API privileges to a Pod in EKS, but coordinating the management of the resources required to construct this relation is awkward.
+
+Cloudsap alleviates the overhead of this setup, by managing the lifecycle of paired AWS IAM Roles and Kubernetes ServiceAccounts, under a **[single CRD](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)**.
 
 ## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'cloudsap'
-```
 
 And then execute:
 
     $ bundle install
-
-Or install it yourself as:
-
-    $ gem install cloudsap
 
 ## Usage
 
@@ -28,11 +24,9 @@ TODO: Write usage instructions here
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/cloudsap.
+Bug reports and pull requests are welcome on GitHub at https://github.com/dayglojesus/cloudsap.
 
 
 ## License
