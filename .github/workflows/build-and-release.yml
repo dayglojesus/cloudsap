@@ -22,6 +22,7 @@ jobs:
       BUILD_NAME: cloudsap
       VERSION_FILE: lib/cloudsap/version.rb
       CHANGELOG: CHANGELOG.md
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
