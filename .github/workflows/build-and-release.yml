@@ -1,0 +1,54 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - lib/cloudsap/version.rb
+
+# Using the Ruby teams https://github.com/ruby/setup-ruby, not the Github
+# team's https://github.com/actions/setup-ruby
+
+jobs:
+  release:
+    env:
+      BUILD_NAME: cloudsap
+      VERSION_FILE: lib/cloudsap/version.rb
+      CHANGELOG: CHANGELOG.md
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+      - name: Build
+        id: build
+        run: |
+          RELEASE_VERSION=$(grep VERSION ${VERSION_FILE} | tr -d "VERSION= \'")
+          RELEASE_BODY_PATH=body.md
+          echo RELEASE_VERSION=${RELEASE_VERSION}     >> $GITHUB_ENV
+          echo RELEASE_BODY_PATH=${RELEASE_BODY_PATH} >> $GITHUB_ENV
+          sed -ne "/## ${RELEASE_VERSION}.*/,/#/p" ${CHANGELOG} | sed -e '$d' > $RELEASE_BODY_PATH
+      - name: Create Release
+        id: release
+        uses: actions/create-release@v1
+        with:
+          tag_name: v${{ env.RELEASE_VERSION }}
+          release_name: ${{ env.RELEASE_VERSION }}
+          body_path: ${{ env.RELEASE_BODY_PATH }}
+          draft: false
+          prerelease: false
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: ${{ github.actor }}/${{ env.BUILD_NAME }}/${{ env.BUILD_NAME }}
+          tag_with_ref: true
+          tag_with_sha: true
+          add_git_labels: true
