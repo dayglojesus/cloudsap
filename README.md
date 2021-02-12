@@ -1,5 +1,7 @@
 # Cloudsap
 
+![Build Status](https://github.com/dayglojesus/cloudsap/workflows/Build%20Status/badge.svg)
+
 Kubernetes CRD + Controller for creating and managing AWS IAM Roles for Service Accounts.
 
 > ⚠️ Cloudsap is functional, but still **experimental**. Proceed with Caution.
@@ -12,9 +14,7 @@ Cloudsap alleviates the overhead of this setup, by managing the lifecycle of pai
 
 ## Installation
 
-And then execute:
-
-    $ bundle install
+TODO: Write installation instructions here
 
 ## Usage
 
