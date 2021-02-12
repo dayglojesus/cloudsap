@@ -3,12 +3,14 @@
 module Cloudsap
   module Common
     class AwsEksClientError < StandardError; end
+
     class AwsIamClientError < StandardError; end
+
     class AwsStsClientError < StandardError; end
 
     class << self
       attr_reader :options, :aws_iam_client, :aws_eks_client, :aws_sts_client,
-                  :oidc_issuer, :account_id
+                  :account_id
 
       alias iam_client aws_iam_client
       alias eks_client aws_eks_client
