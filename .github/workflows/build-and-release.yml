@@ -1,6 +1,12 @@
 name: Build and Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: Rational for running manuualy
+        required: false
+        default: just cuz
   push:
     branches:
       - main
