@@ -3,4 +3,3 @@ _scraps*
 Dockerfile.build
 .bundle
 vendor
-Gemfile.lock
