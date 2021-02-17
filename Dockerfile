@@ -30,4 +30,4 @@ COPY --from=build /root/.bundle/config /root/.bundle/config
 
 WORKDIR /app
 
-CMD bundle exec cloudsap
+ENTRYPOINT ["bundle", "exec", "cloudsap"]
