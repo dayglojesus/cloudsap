@@ -52,10 +52,14 @@ module Cloudsap
         options.oidc_issuer
       end
 
+      def kubeconfig
+        options.kubeconfig
+      end
+
       private
 
       def error_line(error)
-        line = error.backtrace.find { |l| l =~ %r{cloudsap/lib/cloudsap} }
+        line = error.backtrace.find { |l| l =~ %r{lib/cloudsap} }
         file, line_num, _meth = line.split(':')
         "#{File.basename(file)}:#{line_num}"
       end
@@ -85,7 +89,7 @@ module Cloudsap
           logger.debug '::Aws::STS::Client initialized'
           return client
         end
-        raise AwsEksClientError, 'Initialization failed!'
+        raise AwsStsClientError, 'Initialization failed!'
       end
 
       def init_aws_eks_client
@@ -111,20 +115,20 @@ module Cloudsap
       end
     end
 
-    def kubeconfig
-      @kubeconfig ||= Kubeclient::Config.read(kubeconfig_path)
+    def config
+      @config ||= Cloudsap::Kubernetes::Config.new(kubeconfig)
     end
 
     def api_endpoint
-      kubeconfig.context.api_endpoint
+      config.api_endpoint
     end
 
     def ssl_options
-      kubeconfig.context.ssl_options
+      config.ssl_options
     end
 
     def auth_options
-      kubeconfig.context.auth_options
+      config.auth_options
     end
 
     def csa_client
@@ -134,6 +138,9 @@ module Cloudsap
         ssl_options: ssl_options,
         auth_options: auth_options
       )
+    rescue => obj
+      log_exception(obj, level = :fatal)
+      abort
     end
 
     def sa_client
@@ -143,13 +150,12 @@ module Cloudsap
         ssl_options: ssl_options,
         auth_options: auth_options
       )
+    rescue => obj
+      log_exception(obj, level = :fatal)
+      abort
     end
 
     private
-
-    def kubeconfig_path
-      @kubeconfig_path ||= (ENV['KUBECONFIG'] || File.expand_path('~/.kube/config'))
-    end
 
     def program_label
       [PROGRAM_NAME, API_VERSION].join('_')

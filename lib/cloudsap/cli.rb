@@ -36,6 +36,7 @@ module Cloudsap
     option :aws_region,   type: :string,  default: ENV['AWS_REGION'], required: true
     option :cluster_name, type: :string,  default: ENV['CLOUDSAP_CLUSTER_NAME'], required: true
     option :oidc_issuer,  type: :string,  default: ENV['CLOUDSAP_OIDC_ISSUER'], required: false
+    option :kubeconfig,   type: :string,  default: ENV['KUBECONFIG'], required: false
     option :debug,        type: :boolean, default: (ENV['CLOUDSAP_DEBUG'] || false)
     def controller
       Cloudsap::Common.setup(options)

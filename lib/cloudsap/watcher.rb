@@ -33,6 +33,9 @@ module Cloudsap
         version = fetch_resource_version
         logger.warn("Restarting watch ... [#{version}]")
       end
+    rescue Kubeclient::ResourceNotFoundError
+      logger.fatal("CRD for CloudServiceAccounts not installed!")
+      abort
     end
 
     private
