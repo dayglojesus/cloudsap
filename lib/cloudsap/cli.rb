@@ -39,6 +39,10 @@ module Cloudsap
     option :kubeconfig,   type: :string,  default: ENV['KUBECONFIG'], required: false
     option :debug,        type: :boolean, default: (ENV['CLOUDSAP_DEBUG'] || false)
     def controller
+      $stdout.sync = true
+
+      ENV['RACK_ENV'] = 'production'
+
       Cloudsap::Common.setup(options)
 
       registry = Prometheus::Client.registry
