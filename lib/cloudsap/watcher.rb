@@ -6,6 +6,8 @@ module Cloudsap
   class Watcher
     attr_reader :api_group, :api_version, :client, :stack, :metrics
 
+    attr_accessor :futures
+
     include Common
 
     def self.run(api_group, api_version, metrics)
@@ -19,6 +21,7 @@ module Cloudsap
       @api_version = api_version
       @client      = csa_client
       @stack       = {}
+      @futures     = []
     end
 
     def watch
@@ -57,7 +60,7 @@ module Cloudsap
         stack[identity] = csa_load(event)
       end
 
-      stack[identity].async.send(operation)
+      @futures << stack[identity].async.send(operation)
     end
 
     def check_error_status(event, version)
