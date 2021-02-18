@@ -49,7 +49,7 @@ module Cloudsap
       end
 
       def oidc_issuer
-        options.oidc_issuer
+         options.oidc_issuer || @oidc_issuer
       end
 
       def kubeconfig
