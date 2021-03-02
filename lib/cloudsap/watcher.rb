@@ -37,7 +37,7 @@ module Cloudsap
         logger.warn("Restarting watch ... [#{version}]")
       end
     rescue Kubeclient::ResourceNotFoundError
-      logger.fatal("CRD for CloudServiceAccounts not installed!")
+      logger.fatal('CRD for CloudServiceAccounts not installed!')
       abort
     end
 
@@ -47,6 +47,7 @@ module Cloudsap
       @client.get_cloud_service_accounts.resourceVersion
     end
 
+    # rubocop:disable Metrics/AbcSize
     def process_event(event, version)
       name      = event[:object][:metadata][:name]
       namespace = event[:object][:metadata][:namespace]
@@ -62,6 +63,7 @@ module Cloudsap
 
       @futures << stack[identity].async.send(operation)
     end
+    # rubocop:enable Metrics/AbcSize
 
     def check_error_status(event, version)
       return true unless event[:type] == 'ERROR'

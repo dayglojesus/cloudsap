@@ -7,7 +7,7 @@ module Cloudsap
 
       attr_reader :data
 
-      def initialize(path=nil)
+      def initialize(path = nil)
         @path = path.to_s
         @data = load(@path)
       end
@@ -32,8 +32,9 @@ module Cloudsap
 
       def load(path)
         return defaults if path.empty?
+
         Kubeclient::Config.read(path) if File.exist?(path)
-      rescue => e
+      rescue StandardError => e
         logger.fatal(e.message)
         abort
       end
@@ -47,7 +48,7 @@ module Cloudsap
             },
             auth_options: {
               bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token'
-            },
+            }
           }
         }
       end

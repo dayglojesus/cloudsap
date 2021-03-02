@@ -9,9 +9,8 @@ module Cloudsap
     class AwsStsClientError < StandardError; end
 
     class << self
-      attr_writer :options
-      attr_reader :options, :aws_iam_client, :aws_eks_client, :aws_sts_client,
-                  :account_id
+      attr_accessor :options
+      attr_reader :aws_iam_client, :aws_eks_client, :aws_sts_client, :account_id
 
       alias iam_client aws_iam_client
       alias eks_client aws_eks_client
@@ -50,7 +49,7 @@ module Cloudsap
       end
 
       def oidc_issuer
-         options.oidc_issuer || @oidc_issuer
+        options.oidc_issuer || @oidc_issuer
       end
 
       def kubeconfig
@@ -62,7 +61,7 @@ module Cloudsap
       end
 
       def set_plaintext_logger
-        logger.formatter = proc { |sev, dt, prog, msg| puts msg }
+        logger.formatter = proc { |_sev, _dt, _prog, msg| puts msg }
       end
 
       private
@@ -147,8 +146,8 @@ module Cloudsap
         ssl_options: ssl_options,
         auth_options: auth_options
       )
-    rescue => obj
-      log_exception(obj, level = :fatal)
+    rescue StandardError => e
+      log_exception(e, :fatal)
       abort
     end
 
@@ -159,8 +158,8 @@ module Cloudsap
         ssl_options: ssl_options,
         auth_options: auth_options
       )
-    rescue => obj
-      log_exception(obj, level = :fatal)
+    rescue StandardError => e
+      log_exception(e, :fatal)
       abort
     end
 

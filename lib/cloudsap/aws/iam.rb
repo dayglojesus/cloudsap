@@ -18,18 +18,18 @@ module Cloudsap
           object: {
             metadata: {
               name: name,
-              namespace: namespace,
+              namespace: namespace
             },
             spec: {
-              rolePolicyAttachments:[],
+              rolePolicyAttachments: [],
               rolePolicyTemplate: irsa_template,
               policyTemplateValues: {
                 account_id: Cloudsap::Common.account_id,
-                cluster_name: Cloudsap::Common.cluster_name,
-              },
-            },
+                cluster_name: Cloudsap::Common.cluster_name
+              }
+            }
           },
-          status: {},
+          status: {}
         }
         new(RecursiveOpenStruct.new(csa))
       end
