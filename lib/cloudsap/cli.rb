@@ -6,6 +6,7 @@ module Cloudsap
       true
     end
 
+    # rubocop:disable Metrics/BlockLength
     no_commands do
       def setup_rack(registry)
         Rack::Builder.new do
@@ -35,7 +36,7 @@ module Cloudsap
         Thread.report_on_exception = true
         Thread.abort_on_exception = true
         watcher = Cloudsap::Watcher.new(api_group, api_version, metrics)
-        checker = future_proofer(watcher.futures).execute
+        future_proofer(watcher.futures).execute
         Thread.new do
           watcher.watch
         rescue StandardError => e
@@ -47,6 +48,7 @@ module Cloudsap
         end
       end
     end
+    # rubocop:enable Metrics/BlockLength
 
     desc 'controller', 'Run Cloudsap controller'
     option :aws_region,   type: :string,  default: ENV['AWS_REGION'], required: true
@@ -75,6 +77,8 @@ module Cloudsap
     option :cluster_name, type: :string, default: ENV['CLOUDSAP_CLUSTER_NAME'], required: true
     option :namespace,    type: :string, default: ENV['CLOUDSAP_NAMESPACE'], required: true
     option :kubeconfig,   type: :string, default: ENV['KUBECONFIG'], required: false
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/MethodLength
     def install(component)
       $stdout.sync = true
       Cloudsap::Common.options = options
@@ -90,15 +94,17 @@ module Cloudsap
           aws_region: options.aws_region,
           cluster_name: options.cluster_name,
           namespace: options.namespace,
-          account_id: Cloudsap::Common.account_id,
+          account_id: Cloudsap::Common.account_id
         }
         manifest = "#{Cloudsap::Common.assets}/full_install_manifest.erb"
         puts ERB.new(File.read(manifest)).result_with_hash(values)
       else
-        msg = %{Invalid argument -- I don't know how to install: #{component}}
+        msg = %(Invalid argument -- I don't know how to install: #{component})
         Cloudsap::Common.logger.fatal(msg)
         exit 1
       end
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
   end
 end
