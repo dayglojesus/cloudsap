@@ -1,0 +1,36 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": "eks:DescribeCluster",
+      "Resource": "arn:aws:eks:us-west-2:<%= account_id %>:cluster/<%= cluster_name %>"
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": [
+        "iam:UpdateRoleDescription",
+        "iam:UpdateRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:DeleteRole",
+        "iam:CreateRole",
+        "iam:AttachRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::<%= account_id %>:role/<%= cluster_name %>-sa-*"
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": [
+        "iam:List*",
+        "iam:Get*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

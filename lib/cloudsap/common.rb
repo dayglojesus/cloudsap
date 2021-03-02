@@ -9,6 +9,7 @@ module Cloudsap
     class AwsStsClientError < StandardError; end
 
     class << self
+      attr_writer :options
       attr_reader :options, :aws_iam_client, :aws_eks_client, :aws_sts_client,
                   :account_id
 
@@ -29,7 +30,7 @@ module Cloudsap
         end
       rescue StandardError => e
         logger.fatal(e.message)
-        abort
+        exit 1
       end
 
       def logger
@@ -54,6 +55,14 @@ module Cloudsap
 
       def kubeconfig
         options.kubeconfig
+      end
+
+      def assets
+        "#{File.expand_path(__dir__)}/assets"
+      end
+
+      def set_plaintext_logger
+        logger.formatter = proc { |sev, dt, prog, msg| puts msg }
       end
 
       private

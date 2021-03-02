@@ -69,5 +69,36 @@ module Cloudsap
       Thin::Logging.logger = Cloudsap::Common.logger
       Rack::Server.start(app: setup_rack(registry))
     end
+
+    desc 'install COMPONENT', 'Install Cloudsap IRSA or generate install manifests'
+    option :aws_region,   type: :string, default: ENV['AWS_REGION'], required: true
+    option :cluster_name, type: :string, default: ENV['CLOUDSAP_CLUSTER_NAME'], required: true
+    option :namespace,    type: :string, default: ENV['CLOUDSAP_NAMESPACE'], required: true
+    option :kubeconfig,   type: :string, default: ENV['KUBECONFIG'], required: false
+    def install(component)
+      $stdout.sync = true
+      Cloudsap::Common.options = options
+      Cloudsap::Common.set_plaintext_logger
+      case component.to_sym
+      when :irsa
+        Cloudsap::Common.setup(options)
+        Cloudsap::Aws::IamRole.irsa(PROGRAM_NAME, options.namespace).apply
+      when :crd
+        IO.foreach("#{Cloudsap::Common.assets}/cloudserviceaccount.yaml") { |line| puts line }
+      when :full
+        values = {
+          aws_region: options.aws_region,
+          cluster_name: options.cluster_name,
+          namespace: options.namespace,
+          account_id: Cloudsap::Common.account_id,
+        }
+        manifest = "#{Cloudsap::Common.assets}/full_install_manifest.erb"
+        puts ERB.new(File.read(manifest)).result_with_hash(values)
+      else
+        msg = %{Invalid argument -- I don't know how to install: #{component}}
+        Cloudsap::Common.logger.fatal(msg)
+        exit 1
+      end
+    end
   end
 end
