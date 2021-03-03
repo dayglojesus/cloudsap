@@ -9,6 +9,31 @@ module Cloudsap
 
       attr_reader :csa, :object, :sa_name, :sa_namespace, :client
 
+      def self.irsa_template
+        File.read("#{Cloudsap::Common.assets}/irsa_policy_template.erb")
+      end
+
+      def self.irsa(name, namespace)
+        csa = {
+          object: {
+            metadata: {
+              name: name,
+              namespace: namespace
+            },
+            spec: {
+              rolePolicyAttachments: [],
+              rolePolicyTemplate: irsa_template,
+              policyTemplateValues: {
+                account_id: Cloudsap::Common.account_id,
+                cluster_name: Cloudsap::Common.cluster_name
+              }
+            }
+          },
+          status: {}
+        }
+        new(RecursiveOpenStruct.new(csa))
+      end
+
       def self.load(csa)
         new(csa)
       end

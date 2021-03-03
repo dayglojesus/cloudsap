@@ -13,9 +13,6 @@ on:
     paths:
       - lib/cloudsap/version.rb
 
-# Using the Ruby teams https://github.com/ruby/setup-ruby, not the Github
-# team's https://github.com/actions/setup-ruby
-
 jobs:
   release:
     env:
@@ -44,13 +41,3 @@ jobs:
           body_path: ${{ env.RELEASE_BODY_PATH }}
           draft: false
           prerelease: false
-      - name: Push to GitHub Packages
-        uses: docker/build-push-action@v1
-        with:
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          registry: docker.pkg.github.com
-          repository: ${{ github.actor }}/${{ env.BUILD_NAME }}/${{ env.BUILD_NAME }}
-          tag_with_ref: true
-          tag_with_sha: true
-          add_git_labels: true

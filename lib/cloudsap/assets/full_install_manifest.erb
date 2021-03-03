@@ -1,0 +1,246 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  # name must match the spec fields below, and be in the form: <plural>.<group>
+  name: cloudserviceaccounts.k8s.groundstate.io
+spec:
+  # group name to use for REST API: /apis/<group>/<version>
+  group: k8s.groundstate.io
+  # list of versions supported by this CustomResourceDefinition
+  versions:
+    - name: v1alpha1
+      # Each version can be enabled/disabled by Served flag.
+      served: true
+      # One and only one version must be marked as the storage version.
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              description: CloudServiceAccount is the Schema for the CloudSAP Operator
+              type: object
+              properties:
+                cloudProvider:
+                  description: Only "AWS" or "aws" is currently supported
+                  type: string
+                  pattern: '^(aws|AWS)$'
+                  default: aws
+                rolePolicyTemplate:
+                  description: IAM Role policy as string; values may be templated
+                  type: string
+                policyTemplateValues:
+                  x-kubernetes-preserve-unknown-fields: true
+                  description: Object containing key/value substitutions for the policy template
+                  type: object
+                rolePolicyAttachments:
+                  type: array
+                  items:
+                    type: string
+                serviceAccountOptions:
+                  description: Object containing extra ServiceAccount attributes
+                  type: object
+                  properties:
+                    automountServiceAccountToken:
+                      description: Indicates whether pods running as this service account should have an API token automatically mounted
+                      type: boolean
+                      default: true
+                    imagePullSecrets:
+                      description: List of references to secrets in the same namespace to use for pulling any images in pods that reference this ServiceAccount
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+            status:
+              type: object
+              properties:
+                observed:
+                  description: Last resourceVersion and generation observed by CloudSAP Operator. Retained for spec change comparisons.
+                  type: object
+                  properties:
+                    resourceVersion:
+                      type: string
+                    generation:
+                      type: integer
+                serviceAccount:
+                  description: Details of the ServiceAccount component resource being managed by CloudSAP Operator.
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    creationTimestamp:
+                      type: string
+                    resourceVersion:
+                      type: string
+                    uid:
+                      type: string
+                iamRole:
+                  description: Details of the IAM Role component resource being managed by CloudSAP Operator.
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    digest:
+                      type: string
+      additionalPrinterColumns:
+      - name: ServiceAccount
+        type: string
+        description: Name of the created ServiceAccount
+        jsonPath: .status.serviceAccount.name
+      - name: IAMRole
+        type: string
+        description: Name of the created IAM Role
+        jsonPath: .status.iamRole.name
+      - name: Age
+        type: date
+        jsonPath: .metadata.creationTimestamp
+      # subresources describes the subresources for custom resources.
+      subresources:
+        # status enables the status subresource.
+        status: {}
+  scope: Namespaced
+  names:
+    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+    plural: cloudserviceaccounts
+    # singular name to be used as an alias on the CLI and for display
+    singular: cloudserviceaccount
+    # kind is normally the CamelCased singular type. Your resource manifests use this.
+    kind: CloudServiceAccount
+    # shortNames allow shorter string to match your resource on the CLI
+    shortNames:
+    - csa
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: cloudsap
+  name: cloudsap
+  namespace: <%= namespace %>
+spec:
+  ports:
+  - name: metrics
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    name: cloudsap
+  sessionAffinity: None
+
+---
+apiVersion: v1
+automountServiceAccountToken: true
+kind: ServiceAccount
+metadata:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::<%= account_id %>:role/<%= cluster_name %>-sa-<%= namespace %>-cloudsap
+  labels:
+    name: cloudsap
+  name: cloudsap
+  namespace: <%= namespace %>
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    name: cloudsap
+  name: cloudsap
+rules:
+- apiGroups:
+  - k8s.groundstate.io
+  resources:
+  - cloudserviceaccounts
+  - cloudserviceaccounts/status
+  verbs:
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - '*'
+  resources:
+  - serviceaccounts
+  verbs:
+  - '*'
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    name: cloudsap
+  name: cloudsap
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cloudsap
+subjects:
+- kind: ServiceAccount
+  name: cloudsap
+  namespace: <%= namespace %>
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: cloudsap
+  name: cloudsap
+  namespace: <%= namespace %>
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: cloudsap
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+      labels:
+        name: cloudsap
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - args:
+        - controller
+        - --aws-region=<%= aws_region %>
+        - --cluster-name=<%= cluster_name %>
+        image: dayglojesus/cloudsap:latest
+        imagePullPolicy: Always
+        ports:
+        - name: metrics
+          containerPort: 8080
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 3
+        name: cloudsap
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 250m
+            memory: 250Mi
+          requests:
+            cpu: 50m
+            memory: 200Mi
+      serviceAccount: cloudsap
+      serviceAccountName: cloudsap
