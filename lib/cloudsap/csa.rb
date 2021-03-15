@@ -72,15 +72,16 @@ module Cloudsap
       @type        = @event[:type]
       @object      = @event[:object]
       @metadata    = @object[:metadata]
-      @status      = @object[:status] ||= {}
+      @status      = @object[:status] || {}
+      @spec        = @object[:spec] || {}
       @annotations = @metadata[:annotations]
-      @provider_id = @event[:object][:spec][:cloudProvider].to_sym
+      @provider_id = @spec[:cloudProvider]&.to_sym || :aws
     rescue StandardError => e
       log_exception(e)
     end
 
     def status=(data)
-      status.merge!(data)
+      status.deep_merge(data)
     end
 
     private

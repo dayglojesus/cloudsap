@@ -46,12 +46,22 @@ module Cloudsap
           update_status(resource)
           logger.info("APPLY, #{self.class}: #{namespace}/#{name}")
         end
+      rescue => e
+        log_exception(e)
+        show_backtrace(e)
+        csa.metrics.error
+        false
       end
 
       def delete
         if delete_service_account
           logger.info("DELETE, #{self.class}: #{namespace}/#{name}")
         end
+      rescue => e
+        log_exception(e)
+        show_backtrace(e)
+        csa.metrics.error
+        false
       end
 
       private
@@ -68,6 +78,8 @@ module Cloudsap
 
       def delete_service_account
         client.delete_service_account(name, namespace)
+      rescue Kubeclient::ResourceNotFoundError => e
+        log_exception(e, :debug)
       end
 
       def service_account

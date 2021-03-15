@@ -1,5 +1,25 @@
 # frozen_string_literal: true
 
+# Fix for https://github.com/erikhuda/thor/issues/398
+class Thor
+  module Shell
+    class Basic
+      def print_wrapped(message, options = {})
+        indent = (options[:indent] || 0).to_i
+        if indent.zero?
+          stdout.puts message
+        else
+          message.each_line do |message_line|
+            stdout.print ' ' * indent
+            stdout.puts message_line.chomp
+          end
+        end
+      end
+    end
+  end
+end
+
+# rubocop:disable Layout/HeredocIndentation
 module Cloudsap
   class CLI < Thor
     def self.exit_on_failure?
@@ -51,6 +71,40 @@ module Cloudsap
     # rubocop:enable Metrics/BlockLength
 
     desc 'controller', 'Run Cloudsap controller'
+    long_desc <<~LONGDESC
+
+    The `cloudsap contoller` subcommand launches the Cloudsap operator and
+    begins monitoring your cluster for any changes to CloudServiceAccount
+    resources.
+
+    -----------------------------------------------
+     CLI OPTION      ||  DESCRIPTION
+    -----------------------------------------------
+    --aws-region    ||  AWS region that hosts your EKS cluster (required)
+    --cluster-name  ||  Name designated for th EKS cluster (required)
+    --oidc-issuer   ||  URL of the EKS cluster's OIDC issuer
+    --kubeconfig    ||  Path to kubeconfig file for authentication
+    --debug         ||  Enable debug logging
+    -----------------------------------------------
+
+    It can be configured via commandline options above or its equivalent shell
+    environment variable.
+
+    -----------------------------------------------
+     CLI OPTION     ||  ENVIRONMENT VARIABLE
+    -----------------------------------------------
+    --aws-region    ||  AWS_REGION
+    --cluster-name  ||  CLOUDSAP_CLUSTER_NAME
+    --oidc-issuer   ||  CLOUDSAP_OIDC_ISSUER
+    --kubeconfig    ||  KUBECONFIG
+    --debug         ||  CLOUDSAP_DEBUG
+    -----------------------------------------------
+
+    For more information, visit the project homepage ...
+
+    https://github.com/dayglojesus/cloudsap
+
+    LONGDESC
     option :aws_region,   type: :string,  default: ENV['AWS_REGION'], required: true
     option :cluster_name, type: :string,  default: ENV['CLOUDSAP_CLUSTER_NAME'], required: true
     option :oidc_issuer,  type: :string,  default: ENV['CLOUDSAP_OIDC_ISSUER'], required: false
@@ -73,6 +127,53 @@ module Cloudsap
     end
 
     desc 'install COMPONENT', 'Install Cloudsap IRSA or generate install manifests'
+    long_desc <<~LONGDESC
+
+    The `cloudsap install COMPONENT` subcommand perfoms installations of
+    Cloudsap and its prerequisties:
+
+    1. `cloudsap install irsa`
+
+       Installs an AWS IAM Role for ServiceAccounts for Cloudsap itself.
+       Cloudsap requires an IRSA to begin managing the IAM resources associated
+       with any newly created `CloudServiceAccount`.
+
+    2. `cloudsap install full`
+
+       Emits a manifest you can use to install the Cloudsap operator to your
+       cluster. Once emitted, the manifest can be reviewed and edited before
+       applying it to your cluster.
+
+    2. `cloudsap install crd`
+
+       Emits a manifest containing the CRD for the CloudServiceAccounts.
+
+    -----------------------------------------------
+     CLI OPTION     ||  DESCRIPTION
+    -----------------------------------------------
+    --aws-region    ||  AWS region that hosts your EKS cluster (required)
+    --cluster-name  ||  Name designated for th EKS cluster (required)
+    --namespace     ||  Namespace in which to deploy operator (required)
+    --kubeconfig    ||  Path to kubeconfig file for authentication
+    -----------------------------------------------
+
+    It can be configured via commandline options above or its equivalent shell
+    environment variable.
+
+    -----------------------------------------------
+     CLI OPTION     ||  ENVIRONMENT VARIABLE
+    -----------------------------------------------
+    --aws-region    ||  AWS_REGION
+    --cluster-name  ||  CLOUDSAP_CLUSTER_NAME
+    --namespace     ||  CLOUDSAP_NAMESPACE
+    --kubeconfig    ||  KUBECONFIG
+    -----------------------------------------------
+
+    For more information, visit the project homepage ...
+
+    https://github.com/dayglojesus/cloudsap
+
+    LONGDESC
     option :aws_region,   type: :string, default: ENV['AWS_REGION'], required: true
     option :cluster_name, type: :string, default: ENV['CLOUDSAP_CLUSTER_NAME'], required: true
     option :namespace,    type: :string, default: ENV['CLOUDSAP_NAMESPACE'], required: true
@@ -108,3 +209,4 @@ module Cloudsap
     # rubocop:enable Metrics/MethodLength
   end
 end
+# rubocop:enable Layout/HeredocIndentation

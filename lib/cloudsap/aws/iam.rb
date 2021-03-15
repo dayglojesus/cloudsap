@@ -61,7 +61,7 @@ module Cloudsap
       def apply
         resources = fetch_resources
 
-        return resources if digest(resources) == status[:digest]
+        return resources if digest(composite(resources)) == status[:digest]
 
         if (resources = create_resources(resources))
           @arn = resources[:role][:arn]
@@ -78,6 +78,11 @@ module Cloudsap
         delete_role_policy
         delete_role
         logger.info("DELETE, #{self.class}: #{name}")
+      rescue StandardError => e
+        log_exception(e)
+        show_backtrace(e)
+        csa.metrics.error
+        false
       end
 
       def status
@@ -85,21 +90,32 @@ module Cloudsap
       end
 
       def policy_template_values
-        spec[:policyTemplateValues]
+        spec[:policyTemplateValues] || {}
       end
 
       def policy_template
-        spec[:rolePolicyTemplate]
+        spec[:rolePolicyTemplate] || ''
       end
 
       def policy_attachments
-        spec[:rolePolicyAttachments]
+        spec[:rolePolicyAttachments] || []
+      end
+
+      def policy
+        @policy ||= generate_role_policy || ''
       end
 
       private
 
+      def composite(resources)
+        resources = resources.clone
+        resources[:attached_policies] = policy_attachments
+        resources[:policy_document] = Addressable::URI.encode_component(policy)
+        resources
+      end
+
       def spec
-        csa.object[:spec]
+        csa.object[:spec] || {}
       end
 
       def fetch_resources
@@ -109,8 +125,6 @@ module Cloudsap
           list_attached_role_policies
         ].each_with_object({}) do |meth, memo|
           data = send(meth).to_h
-          return memo unless data
-
           memo.merge!(data)
         end
       end
@@ -123,15 +137,12 @@ module Cloudsap
       rescue StandardError => e
         log_exception(e)
         show_backtrace(e)
-      end
-
-      def current_policy_attachements(resources)
-        current = (resources[:attached_policies] || [])
-        current.map { |h| h[:policy_arn] }
+        csa.metrics.error
+        false
       end
 
       def update_policy_attachments(resources)
-        current  = current_policy_attachements(resources)
+        current  = resources[:attached_policies]
         assigned = policy_attachments
         removals = current - assigned
         removals.each { |arn| detach_role_policy(arn) }
@@ -139,7 +150,7 @@ module Cloudsap
       end
 
       def delete_policy_attachments(resources)
-        current = current_policy_attachements(resources)
+        current = resources[:attached_policies]
         current.each { |arn| detach_role_policy(arn) }
       end
 
@@ -149,7 +160,7 @@ module Cloudsap
 
       def update_status(resources)
         patch = {
-          name: resources[:role_name],
+          name: resources[:role][:role_name],
           digest: digest(resources)
         }
         csa.status = { status: { iamRole: patch } }
@@ -181,6 +192,8 @@ module Cloudsap
 
       def generate_role_policy
         ERB.new(policy_template).result_with_hash(policy_template_values)
+      rescue NameError => e
+        raise IamRoleError, "ERB cannot render policy template: #{e.message}"
       end
 
       ###############################################################
@@ -189,34 +202,42 @@ module Cloudsap
 
       # rubocop:disable Naming/AccessorMethodName
       def get_role
+        default = { role: {} }
         resp = client.get_role({ role_name: name })
         return resp if resp.successful?
 
         raise IamRoleError, "Error getting IAM Role: #{resp.error}"
       rescue ::Aws::IAM::Errors::NoSuchEntity => e
         log_exception(e, :debug)
-        nil
+        default
       end
 
       def get_role_policy
+        default = { policy_document: '' }
         resp = client.get_role_policy({ role_name: name, policy_name: name })
         return resp if resp.successful?
 
         raise IamRoleError, "Error getting IAM Role Policy: #{resp.error}"
       rescue ::Aws::IAM::Errors::NoSuchEntity => e
         log_exception(e, :debug)
-        nil
+        default
       end
       # rubocop:enable Naming/AccessorMethodName
 
       def list_attached_role_policies
+        default = { attached_policies: [] }
         resp = client.list_attached_role_policies({ role_name: name })
-        return resp if resp.successful?
+
+        if resp.successful?
+          return resp[:attached_policies].each_with_object(default) do |e, memo|
+            memo[:attached_policies] << e[:policy_arn]
+          end
+        end
 
         raise IamRoleError, "Error listing IAM Role Policy Attachments: #{resp.error}"
       rescue ::Aws::IAM::Errors::NoSuchEntity => e
         log_exception(e, :debug)
-        nil
+        default
       end
 
       ###############################################################
@@ -272,10 +293,12 @@ module Cloudsap
       # rubocop:enable Layout/LineLength
 
       def put_role_policy
+        return if policy.empty?
+
         resp = client.put_role_policy({
                                         role_name: name,
                                         policy_name: name,
-                                        policy_document: generate_role_policy
+                                        policy_document: policy
                                       })
         return resp if resp.successful?
 
