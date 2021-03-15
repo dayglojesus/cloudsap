@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 0.3.0 (2021-03-14)
+
+NEW FEATURES:
+
+* Better inline help
+* Better error handling on CRUD operations
+
+BUG FIXES:
+
+* add missing default values
+  - fix error on poorly formatted policy template
+  - fix error on missing CR attributes
+* fix missing error metrics
+
 ## 0.2.0 (2021-03-01)
 
 NEW FEATURES:

@@ -75,6 +75,36 @@ spec:
 
 ## Running Cloudsap
 
+### Modes
+
+Cloudsap has **two mode of operation**. These modes are invoked as sub-commands to the Cloudsap CLI:
+
+1. `install`: for installing prerequisites and elements of the Cloudsap operator
+  - Example: `cloudsap install irsa --aws-region ...`
+2. `controller`: running the Cloudsap operator
+  - Example: `cloudsap controller irsa --aws-region ...`
+
+### Configuration
+
+Both the Cloudsap `install` and `controller` sub-commands can be configured via CLI options or equivalent environment variables:
+
+#### `cloudsap install COMPONENT`
+| option | env_var | description |
+| -------------  | ------------- | ------------- |
+| --aws-region   | AWS_REGION            | AWS region that hosts your EKS cluster (required) |
+| --cluster-name | CLOUDSAP_CLUSTER_NAME | Name designated for th EKS cluster (required)     |
+| --namespace    | CLOUDSAP_NAMESPACE    | Namespace in which to deploy operator (required)  |
+| --kubeconfig   | KUBECONFIG            | Path to kubeconfig file for authentication        |
+
+#### `cloudsap controller`
+| option | env_var | description |
+| -------------  | ------------- | ------------- |
+| --aws-region   | AWS_REGION            | AWS region that hosts your EKS cluster (required) |
+| --cluster-name | CLOUDSAP_CLUSTER_NAME | Name designated for th EKS cluster (required)     |
+| --oidc-issuer  | CLOUDSAP_OIDC_ISSUER  | URL of the EKS cluster's OIDC issuer              |
+| --kubeconfig   | KUBECONFIG            | Path to kubeconfig file for authentication        |
+| --debug        | CLOUDSAP_DEBUG        | Enable debug logging                              |
+
 ### Deploying to a Cluster
 
 Assuming you've already created an EKS cluster and associated Identity Provider per the instructions [here](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-console.html), the simplest way to setup is to us the `install` subcommand:
@@ -144,7 +174,7 @@ These can be AWS Default policies or ones you've devised yourself.
 
 #### Policy Templates
 
-CSAs can also be used to declare inline IAM Role Policy and have facility for templating valuesusing standard [**Ruby ERB templating**](https://ruby-doc.org/stdlib-2.7.1/libdoc/erb/rdoc/ERB.html).
+CSAs can also be used to declare inline IAM Role Policy and have facility for templating values using standard [**Ruby ERB templating**](https://ruby-doc.org/stdlib-2.7.1/libdoc/erb/rdoc/ERB.html).
 
 Tags you insert into the `spec.rolePolicyTemplate`, will (when rendered) be substituted with values in the `spec.policyTemplateValues` map.
 

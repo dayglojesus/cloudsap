@@ -14,12 +14,14 @@ Metrics/CyclomaticComplexity:
 Metrics/AbcSize:
   Max: 25
 Metrics/ClassLength:
-  Max: 250
+  Max: 300
 Metrics/ModuleLength:
-  Max: 250
+  Max: 500
 Naming/MethodParameterName:
   MinNameLength: 2
 Style/IfUnlessModifier:
   Enabled: false
 Style/GuardClause:
+  Enabled: false
+Style/RescueStandardError:
   Enabled: false
