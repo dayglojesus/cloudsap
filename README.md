@@ -77,12 +77,12 @@ spec:
 
 ### Modes
 
-Cloudsap has **two mode of operation**. These modes are invoked as sub-commands to the Cloudsap CLI:
+Cloudsap has **two modes of operation**. These modes are invoked as sub-commands to the Cloudsap CLI:
 
 1. `install`: for installing prerequisites and elements of the Cloudsap operator
   - Example: `cloudsap install irsa --aws-region ...`
 2. `controller`: running the Cloudsap operator
-  - Example: `cloudsap controller irsa --aws-region ...`
+  - Example: `cloudsap controller --aws-region ...`
 
 ### Configuration
 
