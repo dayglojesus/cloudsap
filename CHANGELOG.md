@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.3.1 (2021-03-16)
+
+BUG FIXES:
+
+* fix exception handling on IAM resources creation
+* fix typos in CLI help
+
 ## 0.3.0 (2021-03-14)
 
 NEW FEATURES:

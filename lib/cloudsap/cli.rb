@@ -81,7 +81,7 @@ module Cloudsap
      CLI OPTION      ||  DESCRIPTION
     -----------------------------------------------
     --aws-region    ||  AWS region that hosts your EKS cluster (required)
-    --cluster-name  ||  Name designated for th EKS cluster (required)
+    --cluster-name  ||  Name designated for the EKS cluster (required)
     --oidc-issuer   ||  URL of the EKS cluster's OIDC issuer
     --kubeconfig    ||  Path to kubeconfig file for authentication
     --debug         ||  Enable debug logging
@@ -152,7 +152,7 @@ module Cloudsap
      CLI OPTION     ||  DESCRIPTION
     -----------------------------------------------
     --aws-region    ||  AWS region that hosts your EKS cluster (required)
-    --cluster-name  ||  Name designated for th EKS cluster (required)
+    --cluster-name  ||  Name designated for the EKS cluster (required)
     --namespace     ||  Namespace in which to deploy operator (required)
     --kubeconfig    ||  Path to kubeconfig file for authentication
     -----------------------------------------------

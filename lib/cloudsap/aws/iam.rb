@@ -70,6 +70,11 @@ module Cloudsap
         else
           logger.error("ERROR, #{self.class}: #{name}")
         end
+      rescue StandardError => e
+        log_exception(e)
+        show_backtrace(e)
+        csa.metrics.error
+        false
       end
 
       def delete
@@ -134,11 +139,6 @@ module Cloudsap
         put_role_policy
         update_policy_attachments(resources)
         fetch_resources
-      rescue StandardError => e
-        log_exception(e)
-        show_backtrace(e)
-        csa.metrics.error
-        false
       end
 
       def update_policy_attachments(resources)
