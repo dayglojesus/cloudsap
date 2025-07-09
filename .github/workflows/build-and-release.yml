@@ -34,7 +34,7 @@ jobs:
           sed -ne "/## ${RELEASE_VERSION}.*/,/#/p" ${CHANGELOG} | sed -e '$d' > $RELEASE_BODY_PATH
       - name: Create Release
         id: release
-        uses: actions/create-release@v1
+        uses: actions/create-release@v1.1.4
         with:
           tag_name: ${{ env.RELEASE_VERSION }}
           release_name: ${{ env.RELEASE_VERSION }}
